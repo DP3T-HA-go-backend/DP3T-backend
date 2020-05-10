@@ -15,7 +15,7 @@ import (
 var data ProtoExposedList
 
 func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    // TODO: Validate date & select data based on it
+    // TODO: Validate date & retrieve data based on it from key-value store
     // var date string
     // date = ps.ByName("date")
 
@@ -45,6 +45,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
         log.Fatal("Failed to parse Exposee: ", err)
     }
 
+    // TODO: Add data to key-value store
     data.Exposed = append(data.Exposed, exposee)
 
     w.Header().Set("Content-Type", "application/json")
