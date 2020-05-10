@@ -1,1 +1,3 @@
+services/public/exposed/exposed
+services/public/exposed/exposed.pb.go
 services/public/demo-go/demo-go

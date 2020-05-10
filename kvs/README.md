@@ -1,3 +1,5 @@
+[Back to Index](../README.md)
+
 # KVS schemas, structure, configuration parameters
 
 
