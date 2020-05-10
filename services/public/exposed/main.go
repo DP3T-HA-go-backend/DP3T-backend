@@ -6,6 +6,7 @@ import (
     "io"
     "io/ioutil"
     "net/http"
+    "os"
 
     "github.com/julienschmidt/httprouter"
     "google.golang.org/protobuf/proto"
@@ -25,6 +26,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     if err != nil {
         log.Fatal("Failed to encode ProtoExposedList: ", err)
     }
+    fmt.Fprintln(os.Stdout, "GET: ", r.URL)
 
     w.Write(m)
 }
@@ -42,6 +44,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
     }
 
     data.Exposed = append(data.Exposed, exposee)
+    fmt.Fprintln(os.Stdout, "POST: ", r.URL, ", body: ", string(in))
 
     w.WriteHeader(http.StatusOK)
     fmt.Fprint(w, "OK\n")
@@ -59,9 +62,9 @@ func main() {
     }
 
     router := httprouter.New()
-    router.GET("/v1", hello)
-    router.GET("/v1/exposed/:date", exposed)
-    router.POST("/v1/exposed", expose)
+    router.GET("/", hello)
+    router.GET("/:date", exposed)
+    router.POST("/", expose)
 
     log.Fatal(http.ListenAndServe(":8080", router))
 }
