@@ -1,4 +1,4 @@
-URL=http://localhost:8080/v1
+URL=http://localhost:8080
 
 exposed: main.go exposed.pb.go
 	go build -o exposed
@@ -8,9 +8,10 @@ exposed.pb.go: exposed.proto
 
 post:
 	@echo "POST $(URL)/exposed"
-	@echo 'key:"SAMPLE_KEY"\nkeyDate:1234' | \
-		protoc --encode main.ProtoExposee exposed.proto | \
-		curl -sS -X POST --data-binary @- $(URL)/exposed
+	@curl -sS -X POST \
+		--header "Content-Type: application/json" \
+		--data '{"key":"SAMPLE_KEY","keyDate":1234}' \
+		$(URL)/exposed
 
 get:
 	@echo "GET $(URL)/exposed/$$(date +"%s")"

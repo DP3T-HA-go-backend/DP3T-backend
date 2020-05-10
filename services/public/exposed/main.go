@@ -6,10 +6,10 @@ import (
     "io"
     "io/ioutil"
     "net/http"
-    "encoding/json"
 
     "github.com/julienschmidt/httprouter"
     "google.golang.org/protobuf/proto"
+    "google.golang.org/protobuf/encoding/protojson"
 )
 
 var data ProtoExposedList
@@ -27,7 +27,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
         log.Fatal("Failed to encode ProtoExposedList: ", err)
     }
 
-    fmt.Println("GET: ", r.URL)
+    fmt.Println("GET:", r.URL)
 
     w.Write(m)
 }
@@ -38,16 +38,23 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
         log.Fatal("Error reading request:", err)
     }
 
-    fmt.Println("POST: ", r.URL, ", body: ", string(in))
+    fmt.Println("POST:", r.URL, string(in))
+
+    exposee := &ProtoExposee{}
+    if err := protojson.Unmarshal(in, exposee); err != nil {
+        log.Fatal("Failed to parse Exposee: ", err)
+    }
+
+    data.Exposed = append(data.Exposed, exposee)
 
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode("Registered")
+    fmt.Fprint(w, "OK\n")
 }
 
 func hello(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
     w.WriteHeader(http.StatusOK)
-    fmt.Fprint(w, "hello\n")
+    fmt.Fprint(w, "Hello\n")
 }
 
 func main() {
