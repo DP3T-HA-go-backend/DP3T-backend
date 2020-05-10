@@ -1,7 +1,7 @@
 URL=http://localhost:8080/v1
 
 exposed: main.go exposed.pb.go
-	go build
+	go build -o exposed
 
 exposed.pb.go: exposed.proto
 	PATH=$(PATH):$(HOME)/go/bin protoc --go_out=. exposed.proto
