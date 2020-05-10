@@ -8,6 +8,7 @@ RUN apt-get update && \
     go get github.com/julienschmidt/httprouter && \
     go get google.golang.org/protobuf/proto && \
     go get github.com/golang/protobuf/proto && \
+    go get google.golang.org/protobuf/encoding/protojson && \
     go get google.golang.org/protobuf/cmd/protoc-gen-go && \
     go install google.golang.org/protobuf/cmd/protoc-gen-go && \
     cd /build && \
