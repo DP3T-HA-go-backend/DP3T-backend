@@ -6,6 +6,8 @@ import (
     "io"
     "io/ioutil"
     "net/http"
+    "strconv"
+    "time"
 
     "github.com/julienschmidt/httprouter"
     "google.golang.org/protobuf/proto"
@@ -20,6 +22,8 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     // date = ps.ByName("date")
 
     w.Header().Set("Content-Type", "application/x-protobuf")
+    w.Header().Set("x-public-key", "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFdkxXZHVFWThqcnA4aWNSNEpVSlJaU0JkOFh2UgphR2FLeUg2VlFnTXV2Zk1JcmxrNk92QmtKeHdhbUdNRnFWYW9zOW11di9rWGhZdjF1a1p1R2RjREJBPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg")
+    w.Header().Set("x-batch-release-time",strconv.FormatInt(makeTimestamp(),10))
     w.WriteHeader(http.StatusOK)
 
     m, err := proto.Marshal(&data)
@@ -56,6 +60,10 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func hello(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
     w.WriteHeader(http.StatusOK)
     fmt.Fprint(w, "Hello\n")
+}
+
+func makeTimestamp() int64 {
+    return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func main() {
