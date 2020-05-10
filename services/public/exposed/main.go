@@ -21,7 +21,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     // date = ps.ByName("date")
 
     w.Header().Set("Content-Type", "application/x-protobuf")
-    w.WriteHeader(http.StatusCreated)
+    w.WriteHeader(http.StatusOK)
 
     m, err := proto.Marshal(&data)
     if err != nil {
