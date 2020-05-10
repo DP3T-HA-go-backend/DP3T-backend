@@ -7,7 +7,6 @@ import (
     "io/ioutil"
     "net/http"
     "encoding/json"
-    "os"
 
     "github.com/julienschmidt/httprouter"
     "google.golang.org/protobuf/proto"
@@ -27,21 +26,21 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     if err != nil {
         log.Fatal("Failed to encode ProtoExposedList: ", err)
     }
-    fmt.Fprintln(os.Stdout, "GET: ", r.URL)
+
+    fmt.Println("GET: ", r.URL)
 
     w.Write(m)
 }
 
 func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-
     in, err := ioutil.ReadAll(io.LimitReader(r.Body, 1024))
     if err != nil {
         log.Fatal("Error reading request:", err)
     }
 
-    fmt.Fprintln(os.Stdout, "POST: ", r.URL, ", body: ", string(in))
-    w.Header().Set("Content-Type", "application/json")
+    fmt.Println("POST: ", r.URL, ", body: ", string(in))
 
+    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode("Registered")
 }
