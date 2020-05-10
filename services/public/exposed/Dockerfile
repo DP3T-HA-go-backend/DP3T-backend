@@ -13,7 +13,7 @@ RUN apt-get update && \
     cd /build && \
     make
 
-FROM golang:alpine
+FROM alpine
 
 RUN apk add --no-cache libc6-compat
 
