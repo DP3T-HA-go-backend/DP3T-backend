@@ -1,26 +1,26 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "io"
-    "io/ioutil"
-    "net/http"
-    "strconv"
-    "time"
-    "crypto/sha256"
-    "crypto/x509"
-    "encoding/pem"
-    "encoding/base64"
-//    "crypto/elliptic"
-//    "crypto/rand"
-    //"crypto/sha256"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+	//    "crypto/elliptic"
+	//    "crypto/rand"
+	//"crypto/sha256"
 
-    "github.com/dgrijalva/jwt-go"
-    "github.com/julienschmidt/httprouter"
-    "google.golang.org/protobuf/proto"
-    "google.golang.org/protobuf/encoding/protojson"
-    "github.com/spf13/viper"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/julienschmidt/httprouter"
+	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var data ProtoExposedList
@@ -52,39 +52,39 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		fmt.Println("Unable to parse ECDSA private key: ", err2)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-    }
+	}
 
-    m, err := proto.Marshal(&data)
-    if err != nil {
-        log.Fatal("Failed to encode ProtoExposedList: ", err)
-    }
+	m, err := proto.Marshal(&data)
+	if err != nil {
+		log.Fatal("Failed to encode ProtoExposedList: ", err)
+	}
 
-    h := sha256.Sum256([]byte(m))
-    digest := base64.StdEncoding.EncodeToString(h[:])
-    token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims {
-		"content-hash": digest,
-		"hash-alg": "sha256",
-		"iss": "d3pt",
-		"iat": strconv.FormatInt(makeTimestampSeconds(),10),
-		"exp": strconv.FormatInt(makeTimestampSeconds()+1814400,10),
-		"batch-release-time": strconv.FormatInt(makeTimestampMillis(),10),
-             })
+	h := sha256.Sum256([]byte(m))
+	digest := base64.StdEncoding.EncodeToString(h[:])
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"content-hash":       digest,
+		"hash-alg":           "sha256",
+		"iss":                "d3pt",
+		"iat":                strconv.FormatInt(makeTimestampSeconds(), 10),
+		"exp":                strconv.FormatInt(makeTimestampSeconds()+1814400, 10),
+		"batch-release-time": strconv.FormatInt(makeTimestampMillis(), 10),
+	})
 
-    tokenString, err := token.SignedString(ecdsaKey)
-    //fmt.Println(tokenString, err)
-    if err != nil {
-	w.WriteHeader(http.StatusInternalServerError)
-	return
-    }
+	tokenString, err := token.SignedString(ecdsaKey)
+	//fmt.Println(tokenString, err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Digest", "sha-256="+digest)
-    w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
-    w.Header().Set("x-protobuf-schema", "exposed.proto")
-    w.Header().Set("Signature", tokenString)
-    w.WriteHeader(http.StatusOK)
-    fmt.Println("GET:", r.URL)
+	w.Header().Set("Digest", "sha-256="+digest)
+	w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
+	w.Header().Set("x-protobuf-schema", "exposed.proto")
+	w.Header().Set("Signature", tokenString)
+	w.WriteHeader(http.StatusOK)
+	fmt.Println("GET:", r.URL)
 
-    w.Write(m)
+	w.Write(m)
 }
 
 func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
