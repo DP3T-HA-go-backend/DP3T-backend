@@ -8,17 +8,15 @@ import (
     "net/http"
     "strconv"
     "time"
-    //"crypto/ecdsa"
     "crypto/x509"
     "encoding/pem"
-//    "crypto/elliptic"
-//    "crypto/rand"
-    //"crypto/sha256"
 
-    "github.com/dgrijalva/jwt-go"
-    "github.com/julienschmidt/httprouter"
     "google.golang.org/protobuf/proto"
     "google.golang.org/protobuf/encoding/protojson"
+
+    "github.com/julienschmidt/httprouter"
+    "github.com/spf13/viper"
+    "github.com/dgrijalva/jwt-go"
 )
 
 var data ProtoExposedList
@@ -48,17 +46,17 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     //fmt.Println(mySigningKey, err)
     mySigningKey, err0 := ioutil.ReadFile("/ec256-key")
     if err0 != nil {
-		fmt.Println("Unable to load ECDSA private key: ", err0)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+        fmt.Println("Unable to load ECDSA private key: ", err0)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
     }
     //fmt.Println("key: ",mySigningKey)
     block, _ := pem.Decode(mySigningKey)
     if block == nil || block.Type != "EC PRIVATE KEY" {
-		fmt.Println("failed to decode PEM block containing EC privatekey")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+        fmt.Println("failed to decode PEM block containing EC privatekey")
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
 
     //fmt.Println("key: ",mySigningKey)
     //var ecdsaKey *ecdsa.PrivateKey
@@ -66,9 +64,9 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     ecdsaKey, err2 := x509.ParseECPrivateKey(block.Bytes)
     //
     if err2 != nil {
-		fmt.Println("Unable to parse ECDSA private key: ", err2)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+        fmt.Println("Unable to parse ECDSA private key: ", err2)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
     }
 
     token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims {
@@ -136,6 +134,17 @@ func makeTimestampSeconds() int64 {
 }
 
 func main() {
+    viper.SetDefault("core.port", 8080)
+
+    viper.SetConfigName("config")
+    viper.SetConfigType("ini")
+    viper.AddConfigPath("/service/etc/exposed/")
+    viper.AddConfigPath(".")
+    if err := viper.ReadInConfig(); err != nil {
+        log.Fatal("Failed to read config file: ", err)
+    }
+
+    // Initialize exposed data
     data = ProtoExposedList{
         BatchReleaseTime: 123456789,
         Exposed: []*ProtoExposee{},
@@ -146,5 +155,8 @@ func main() {
     router.GET("/exposed/:date", exposed)
     router.POST("/exposed", expose)
 
-    log.Fatal(http.ListenAndServe(":8080", router))
+    addr := fmt.Sprint(":", viper.GetInt("core.port"))
+    fmt.Println("Listening on", addr)
+
+    log.Fatal(http.ListenAndServe(addr, router))
 }

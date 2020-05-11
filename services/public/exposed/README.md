@@ -19,3 +19,12 @@ Run:
 make post
 make get
 ```
+
+### Docker
+
+Build the Docker image and run the container as follows:
+
+```
+make docker-image
+make docker-run
+```

@@ -18,6 +18,12 @@ get:
 	@curl -sS -X GET $(URL)/exposed/$$(date +"%s") | \
 		protoc --decode main.ProtoExposedList exposed.proto
 
+docker-image:
+	docker build . -t dp3t.exposed.protobuf.api:latest
+
+docker-run:
+	docker run -p 8080:8080 --rm -it dp3t.exposed.protobuf.api
+
 clean:
 	rm -f exposed
 	rm -f exposed.pb.go
