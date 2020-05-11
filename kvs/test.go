@@ -22,8 +22,12 @@ var (
 )
 
 func main() {
-	KVPut("foo", "boo")
-	KVGet("foo")
+	//KVPut("foo", "boo")
+	//KVPut("fooo", "booo")
+	//KVGet("foo")
+	//KVGet("fooo")
+	KVGetWithPrefix("fo")
+	//KVDeleteWithPrefix("foo")
 }
 
 func tlsConfig() *tls.Config {
@@ -82,7 +86,7 @@ func KVGet(key string) {
 	// Output: foo : bar
 }
 
-func ExampleKVGet() {
+func KVDeleteWithPrefix(key string) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
@@ -92,15 +96,43 @@ func ExampleKVGet() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer cli.Close() // make sure to close the client
+	defer cli.Close()
 
-	_, err = cli.Put(context.TODO(), "foo", "bar")
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+
+	// count keys about to be deleted
+	gresp, err := cli.Get(ctx, key, clientv3.WithPrefix())
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// delete the keys
+	dresp, err := cli.Delete(ctx, key, clientv3.WithPrefix())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Deleted all keys:", int64(len(gresp.Kvs)) == dresp.Deleted)
+	// Output:
+	// Deleted all keys: true
+}
+
+func KVGetWithPrefix(key string) {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close()
+
+
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
-	resp, err := cli.Get(ctx, "foo")
+	resp, err := cli.Get(ctx, key, clientv3.WithPrefix())
 	cancel()
 	if err != nil {
 		log.Fatal(err)
@@ -108,10 +140,9 @@ func ExampleKVGet() {
 	for _, ev := range resp.Kvs {
 		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
 	}
-	// Output: foo : bar
 }
 
-func ExampleConfigWithTLS() {
+func TestConfigWithTLS() {
 	tlsInfo := transport.TLSInfo{
 		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
 		KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
