@@ -8,9 +8,10 @@ import (
     "net/http"
     "strconv"
     "time"
-    //"crypto/ecdsa"
+    "crypto/sha256"
     "crypto/x509"
     "encoding/pem"
+    "encoding/base64"
 //    "crypto/elliptic"
 //    "crypto/rand"
     //"crypto/sha256"
@@ -71,14 +72,24 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
     }
 
+
+
+
+    m, err := proto.Marshal(&data)
+    if err != nil {
+        log.Fatal("Failed to encode ProtoExposedList: ", err)
+    }
+
+    h := sha256.Sum256([]byte(m))
     token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims {
-		"content-hash": "digesthereSHA256",
+		"content-hash": base64.StdEncoding.EncodeToString(h[:]),
 		"hash-alg": "sha256",
 		"iss": "d3pt",
 		"iat": strconv.FormatInt(makeTimestampSeconds(),10),
 		"exp": strconv.FormatInt(makeTimestampSeconds()+1814400,10),
 		"batch-release-time": strconv.FormatInt(makeTimestampMillis(),10),
              })
+
     tokenString, err := token.SignedString(ecdsaKey)
     fmt.Println(tokenString, err)
     if err != nil {
@@ -89,13 +100,6 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
     w.Header().Set("Signature", tokenString)
     w.WriteHeader(http.StatusOK)
-
-
-    m, err := proto.Marshal(&data)
-    if err != nil {
-        log.Fatal("Failed to encode ProtoExposedList: ", err)
-    }
-
     fmt.Println("GET:", r.URL)
 
     w.Write(m)
