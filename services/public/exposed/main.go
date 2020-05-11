@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,16 +13,22 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	//    "crypto/elliptic"
-	//    "crypto/rand"
-	//"crypto/sha256"
+
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+
+	"gopkg.in/ini.v1"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
+
+type Config struct {
+	Port    int    `ini:"port"`
+	KeyFile string `ini:"keyfile"`
+}
+
+var conf Config
 
 var data ProtoExposedList
 
@@ -34,7 +41,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("x-public-key", "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhySjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t")
 	w.Header().Set("x-batch-release-time", strconv.FormatInt(makeTimestampMillis(), 10))
 
-	mySigningKey, err0 := ioutil.ReadFile("/ec256-key")
+	mySigningKey, err0 := ioutil.ReadFile(conf.KeyFile)
 	if err0 != nil {
 		fmt.Println("Unable to load ECDSA private key: ", err0)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -122,14 +129,16 @@ func makeTimestampSeconds() int64 {
 }
 
 func main() {
-	viper.SetDefault("core.port", 8080)
+	config_p := flag.String("config", "./config.ini", "path to config file")
+	flag.Parse()
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("ini")
-	viper.AddConfigPath("/service/etc/exposed/")
-	viper.AddConfigPath(".")
-	if err := viper.ReadInConfig(); err != nil {
+	i, err := ini.Load(*config_p)
+	if err != nil {
 		log.Fatal("Failed to read config file: ", err)
+	}
+
+	if err := i.MapTo(&conf); err != nil {
+		log.Fatal("Failed to decode config: ", err)
 	}
 
 	// Initialize exposed data
@@ -143,8 +152,10 @@ func main() {
 	router.GET("/exposed/:date", exposed)
 	router.POST("/exposed", expose)
 
-	addr := fmt.Sprint(":", viper.GetInt("core.port"))
-	fmt.Println("Listening on", addr)
+	addr := fmt.Sprint(":", conf.Port)
+
+	fmt.Println("Key file:", conf.KeyFile)
+	fmt.Println("Listening on:", addr)
 
 	log.Fatal(http.ListenAndServe(addr, router))
 }
