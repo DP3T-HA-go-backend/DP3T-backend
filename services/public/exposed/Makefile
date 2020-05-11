@@ -18,7 +18,10 @@ get:
 	@curl -sS -X GET $(URL)/exposed/$$(date +"%s") | \
 		protoc --decode main.ProtoExposedList exposed.proto
 
-docker-image:
+ec256-key:
+	ssh-keygen -t ecdsa -b 256 -f ec256-key -m pkcs8 -N ''
+
+docker-image: ec256-key
 	docker build . -t dp3t.exposed.protobuf.api:latest
 
 docker-run:

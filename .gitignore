@@ -1,3 +1,5 @@
 services/public/exposed/exposed
 services/public/exposed/exposed.pb.go
 services/public/demo-go/demo-go
+services/public/exposed/ec256-key
+services/public/exposed/ec256-key.pub
