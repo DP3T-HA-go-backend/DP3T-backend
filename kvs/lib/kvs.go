@@ -33,8 +33,8 @@ func tlsConfig() *tls.Config {
 	return tlsConfig
 }
 
-
-func KVPut(key string, value string ) {
+//KVPut to put key and value
+func KVPut(key string, value string) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
@@ -52,6 +52,7 @@ func KVPut(key string, value string ) {
 	}
 }
 
+//KVPutTTL to put key and value with a Time To Live in days
 func KVPutTTL(key string, value string, days int64) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
@@ -65,7 +66,7 @@ func KVPutTTL(key string, value string, days int64) {
 	defer cli.Close()
 
 	// minimum lease TTL is in seconds
-	resp, err := cli.Grant(context.TODO(), days * 24 * 3600)
+	resp, err := cli.Grant(context.TODO(), days*24*3600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,6 +78,7 @@ func KVPutTTL(key string, value string, days int64) {
 	}
 }
 
+// KVGet to Get a key
 func KVGet(key string) *clientv3.GetResponse {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
@@ -99,6 +101,7 @@ func KVGet(key string) *clientv3.GetResponse {
 	return resp
 }
 
+//KVDelete to delete a key
 func KVDelete(key string) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
@@ -121,6 +124,7 @@ func KVDelete(key string) {
 	}
 }
 
+//KVDeleteWithPrefix to delete all the keys with the prefix key
 func KVDeleteWithPrefix(key string) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
@@ -153,6 +157,7 @@ func KVDeleteWithPrefix(key string) {
 	// Deleted all keys: true
 }
 
+//KVGetWithPrefix to get all the keys with prefix key
 func KVGetWithPrefix(key string) *clientv3.GetResponse {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
@@ -165,7 +170,6 @@ func KVGetWithPrefix(key string) *clientv3.GetResponse {
 	}
 	defer cli.Close()
 
-
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	resp, err := cli.Get(ctx, key, clientv3.WithPrefix())
 	cancel()
@@ -176,6 +180,7 @@ func KVGetWithPrefix(key string) *clientv3.GetResponse {
 	return resp
 }
 
+//TestConfigWithTLS function to test connection with TLS config
 func TestConfigWithTLS() {
 	tlsInfo := transport.TLSInfo{
 		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
@@ -212,4 +217,3 @@ func TestConfigWithTLS() {
 		}
 	}
 }
-
