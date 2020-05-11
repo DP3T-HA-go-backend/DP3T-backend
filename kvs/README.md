@@ -9,7 +9,7 @@
 - ### Install
 
 ```bash
-> go get go.etcd.io/etcd/v3/client
+> go get go.etcd.io/etcd/clientv3
 ```
 - ### Get started
 
@@ -67,3 +67,5 @@ if err != nil {
 	}
 }
 ```
+
+- ## Code examples in [GoDoc](https://godoc.org/go.etcd.io/etcd/clientv3).

@@ -9,4 +9,12 @@ message ProtoExposedList {
 message ProtoExposee {
     bytes key = 2;
     int64 keyDate = 3;
+
+    // Optional fields to convert from JSON POST
+    ProtoAuthData authData = 4;
+    int32 fake = 5;
+}
+
+message ProtoAuthData {
+    string value = 1;
 }
