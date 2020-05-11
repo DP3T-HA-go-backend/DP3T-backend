@@ -78,7 +78,6 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		"iss":                "d3pt",
 		"iat":                strconv.FormatInt(makeTimestampSeconds(), 10),
 		"exp":                strconv.FormatInt(makeTimestampSeconds()+1814400, 10),
-		"batch-release-time": strconv.FormatInt(makeTimestampMillis(), 10),
 	})
 
 	tokenString, err := token.SignedString(ecdsaKey)
@@ -96,10 +95,6 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Write(m)
 }
 
-func hello(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, "Hello\n")
-}
 
 func makeTimestampMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
@@ -114,7 +109,7 @@ func main() {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("ini")
-	viper.AddConfigPath("/service/etc/exposed/")
+	viper.AddConfigPath("/service/etc/authcode/")
 	viper.AddConfigPath(".")
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal("Failed to read config file: ", err)
@@ -122,8 +117,7 @@ func main() {
 
 	
 	router := httprouter.New()
-	router.GET("/", hello)
-	router.GET("/authcode", gencode)
+	router.GET("/", gencode)
 
 	addr := fmt.Sprint(":", viper.GetInt("core.port"))
 	fmt.Println("Listening on", addr)

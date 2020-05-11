@@ -16,7 +16,7 @@ FROM alpine
 RUN apk add --no-cache libc6-compat
 
 COPY ec256-key /ec256-key
-COPY config.ini /service/etc/exposed/config.ini
+COPY config.ini /service/etc/authcode/config.ini
 COPY --from=builder /build/authcode /service/bin/authcode
 
 EXPOSE 8080/tcp
