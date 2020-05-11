@@ -40,7 +40,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     // https://godoc.org/github.com/dgrijalva/jwt-go#example-New--Hmac}
 
     w.Header().Set("Content-Type", "application/x-protobuf")
-    w.Header().Set("x-public-key", "TUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFWndxcUhIM1p6M05OZzd6aGtjZTIxbFpEdllyTWpEYW1BbG5TWXg2SHRBT0VMazlqR1VpeHRoeTk4MXpQc3N2bjdOYlFGVjdxcXFKMHdyWTJjR05pQ1E9PQ==")
+    w.Header().Set("x-public-key", "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhySjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t")
     w.Header().Set("x-batch-release-time",strconv.FormatInt(makeTimestampMillis(),10))
 
     //mySigningKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
