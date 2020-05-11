@@ -22,8 +22,93 @@ var (
 )
 
 func main() {
-	ExampleConfigWithTLS()
-	ExampleKVGet()
+	KVPut("foo", "boo")
+	KVGet("foo")
+}
+
+func tlsConfig() *tls.Config {
+	tlsInfo := transport.TLSInfo{
+		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
+		KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
+		TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
+	}
+	tlsConfig, err := tlsInfo.ClientConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return tlsConfig
+}
+
+
+func KVPut(key string, value string ) {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close() // make sure to close the client
+
+	_, err = cli.Put(context.TODO(), key, value)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+func KVGet(key string) {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close() // make sure to close the client
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	resp, err := cli.Get(ctx, key)
+	cancel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, ev := range resp.Kvs {
+		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
+	}
+	// Output: foo : bar
+}
+
+func ExampleKVGet() {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close() // make sure to close the client
+
+	_, err = cli.Put(context.TODO(), "foo", "bar")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	resp, err := cli.Get(ctx, "foo")
+	cancel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, ev := range resp.Kvs {
+		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
+	}
+	// Output: foo : bar
 }
 
 func ExampleConfigWithTLS() {
@@ -63,54 +148,3 @@ func ExampleConfigWithTLS() {
 	}
 }
 
-func ExampleKVGet() {
-	/* 	tlsInfo := transport.TLSInfo{
-	   		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
-	   		KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
-	   		TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
-	   	}
-	   	tlsConfig, err := tlsInfo.ClientConfig()
-	   	if err != nil {
-	   		log.Fatal(err)
-	     } */
-	tlsConfig := tlsConfig()
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: dialTimeout,
-		TLS:         tlsConfig,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cli.Close() // make sure to close the client
-
-	_, err = cli.Put(context.TODO(), "foo", "bar")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
-	resp, err := cli.Get(ctx, "foo")
-	cancel()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, ev := range resp.Kvs {
-		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
-	}
-	// Output: foo : bar
-}
-
-func tlsConfig() *tls.Config {
-	tlsInfo := transport.TLSInfo{
-		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
-		KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
-		TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
-	}
-	tlsConfig, err := tlsInfo.ClientConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return tlsConfig
-}
