@@ -3,6 +3,8 @@
 This implementation is just meant to be a demo for testing purposes.
 Data is stored in memory and not persisted.
 
+A 'ec256-key' ECS256 PRIVATE key needs to be placed in the folder. It needs to match the PUBKEY in the DP3T App module.
+
 Building the service requires Go and Protocol Buffers:
 
 ```
