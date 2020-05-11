@@ -6,7 +6,7 @@ COPY . /build
 RUN apt-get update && \
     apt-get -y install protobuf-compiler && \
     go get github.com/julienschmidt/httprouter && \
-    go get github.com/dgrijalva/jwt-go && \
+    go get gopkg.in/dgrijalva/jwt-go.v3 && \
     go get gopkg.in/ini.v1 && \
     go get google.golang.org/protobuf/proto && \
     go get github.com/golang/protobuf/proto && \

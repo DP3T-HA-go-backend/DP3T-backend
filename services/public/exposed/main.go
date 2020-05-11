@@ -18,8 +18,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"gopkg.in/ini.v1"
-
-	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/dgrijalva/jwt-go.v3"
 	"github.com/julienschmidt/httprouter"
 )
 
