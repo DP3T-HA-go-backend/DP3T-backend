@@ -114,11 +114,6 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "OK\n")
 }
 
-func hello(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, "Hello\n")
-}
-
 func makeTimestampMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
@@ -147,9 +142,8 @@ func main() {
 	}
 
 	router := httprouter.New()
-	router.GET("/", hello)
-	router.GET("/exposed/:date", exposed)
-	router.POST("/exposed", expose)
+	router.GET("/:date", exposed)
+	router.POST("/", expose)
 
 	addr := fmt.Sprint(":", conf.Port)
 
