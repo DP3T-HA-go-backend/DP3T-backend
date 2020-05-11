@@ -1,18 +1,16 @@
-package main
+package kvs
 
 import (
 	"context"
 	"crypto/tls"
 	"log"
 
-	//"os"
 	"fmt"
 	"time"
 
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/etcdserver/api/v3rpc/rpctypes"
 	"go.etcd.io/etcd/pkg/transport"
-	//"google.golang.org/grpc/grpclog"
 )
 
 var (
@@ -20,16 +18,6 @@ var (
 	requestTimeout = 10 * time.Second
 	endpoints      = []string{"10.0.26.10:2379", "10.0.26.11:2379", "10.0.26.13:2379"}
 )
-
-func main() {
-	//KVPut("foo", "boo")
-	//KVPut("fooo", "booo")
-	//KVGet("foo")
-	//KVGet("fooo")
-	KVPutTTL("fooooo", "se fueeee", 14)
-	KVGetWithPrefix("fo")
-	//KVDeleteWithPrefix("foo")
-}
 
 func tlsConfig() *tls.Config {
 	tlsInfo := transport.TLSInfo{
@@ -89,7 +77,7 @@ func KVPutTTL(key string, value string, days int64) {
 	}
 }
 
-func KVGet(key string) {
+func KVGet(key string) *clientv3.GetResponse {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
@@ -107,10 +95,30 @@ func KVGet(key string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, ev := range resp.Kvs {
-		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
+
+	return resp
+}
+
+func KVDelete(key string) {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
-	// Output: foo : bar
+	defer cli.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+
+	// delete the keys
+	_, err = cli.Delete(ctx, key)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func KVDeleteWithPrefix(key string) {
@@ -145,7 +153,7 @@ func KVDeleteWithPrefix(key string) {
 	// Deleted all keys: true
 }
 
-func KVGetWithPrefix(key string) {
+func KVGetWithPrefix(key string) *clientv3.GetResponse {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
@@ -164,9 +172,8 @@ func KVGetWithPrefix(key string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, ev := range resp.Kvs {
-		fmt.Printf("%s : %s\n", ev.Key, ev.Value)
-	}
+
+	return resp
 }
 
 func TestConfigWithTLS() {
