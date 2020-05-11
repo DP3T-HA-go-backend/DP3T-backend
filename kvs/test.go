@@ -26,6 +26,7 @@ func main() {
 	//KVPut("fooo", "booo")
 	//KVGet("foo")
 	//KVGet("fooo")
+	KVPutTTL("fooooo", "se fueeee", 14)
 	KVGetWithPrefix("fo")
 	//KVDeleteWithPrefix("foo")
 }
@@ -62,6 +63,32 @@ func KVPut(key string, value string ) {
 		log.Fatal(err)
 	}
 }
+
+func KVPutTTL(key string, value string, days int64) {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close()
+
+	// minimum lease TTL is in seconds
+	resp, err := cli.Grant(context.TODO(), days * 24 * 3600)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// after grant seconds, the key will be removed
+	_, err = cli.Put(context.TODO(), key, value, clientv3.WithLease(resp.ID))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func KVGet(key string) {
 	tlsConfig := tlsConfig()
 	cli, err := clientv3.New(clientv3.Config{
