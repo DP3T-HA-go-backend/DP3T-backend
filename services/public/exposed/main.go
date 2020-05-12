@@ -47,7 +47,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	m, err := proto.Marshal(&data)
 	if err != nil {
-		log.Println("ERROR:", "Encoding protobuf:", err)
+		log.Println("ERROR: Encoding protobuf:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -72,7 +72,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	signature, err := token.SignedString(conf.PrivateKey)
 	if err != nil {
-		log.Println("ERROR:", "Token signature:", err)
+		log.Println("ERROR: Token signature:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,14 +93,14 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	in, err := ioutil.ReadAll(io.LimitReader(r.Body, 1024))
 	if err != nil {
-		log.Println("ERROR:", "Reading request:", err)
+		log.Println("ERROR: Reading request:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	exposee := &ProtoExposee{}
 	if err := protojson.Unmarshal(in, exposee); err != nil {
-		log.Println("ERROR:", "Decoding JSON:", err)
+		log.Println("ERROR: Decoding JSON:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -153,7 +153,7 @@ func main() {
 
 	err := initConfig(*conf_file_p)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERROR: ", err)
 	}
 
 	// Initialize exposed data
