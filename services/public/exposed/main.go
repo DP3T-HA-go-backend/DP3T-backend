@@ -24,17 +24,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const PUBLIC_KEY string = "" +
+	"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlL" +
+	"b1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhy" +
+	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
+	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+
 type Config struct {
 	Port           int    `ini:"port"`
 	PrivateKeyFile string `ini:"private-key-file"`
 	PrivateKey     *ecdsa.PrivateKey
 }
-
-const publicKey string = "" +
-	"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlL" +
-	"b1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhy" +
-	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
-	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
 
 var conf Config
 
@@ -52,15 +52,22 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
+	ts_s := time.Now().UnixNano() / int64(time.Second)
+	ts_ms := time.Now().UnixNano() / int64(time.Millisecond)
+
+	time := strconv.FormatInt(ts_s, 10)
+	time_exp := strconv.FormatInt(ts_s + 1814400, 10)
+	time_ms := strconv.FormatInt(ts_ms, 10)
+
 	h := sha256.Sum256([]byte(m))
 	digest := base64.StdEncoding.EncodeToString(h[:])
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
 		"content-hash":       digest,
 		"hash-alg":           "sha256",
 		"iss":                "d3pt",
-		"iat":                strconv.FormatInt(makeTimestampSeconds(), 10),
-		"exp":                strconv.FormatInt(makeTimestampSeconds() + 1814400, 10),
-		"batch-release-time": strconv.FormatInt(makeTimestampMillis(), 10),
+		"iat":                time,
+		"exp":                time_exp,
+		"batch-release-time": time_ms,
 	})
 
 	signature, err := token.SignedString(conf.PrivateKey)
@@ -75,8 +82,8 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.Header().Set("Digest", "sha-256=" + digest)
 	w.Header().Set("Signature", signature)
-	w.Header().Set("x-public-key", publicKey)
-	w.Header().Set("x-batch-release-time", strconv.FormatInt(makeTimestampMillis(), 10))
+	w.Header().Set("x-public-key", PUBLIC_KEY)
+	w.Header().Set("x-batch-release-time", time_ms)
 	w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
 	w.Header().Set("x-protobuf-schema", "exposed.proto")
 	w.WriteHeader(http.StatusOK)
@@ -102,14 +109,6 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, "OK\n")
-}
-
-func makeTimestampMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func makeTimestampSeconds() int64 {
-	return time.Now().UnixNano() / int64(time.Second)
 }
 
 func initConfig(conf_file string) error {
