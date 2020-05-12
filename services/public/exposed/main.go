@@ -118,7 +118,7 @@ func initConfig(conf_file string) error {
 	}
 
 	if _, e := os.Stat(conf.PrivateKeyFile); e != nil {
-		return fmt.Errorf("Failed to decode config: %s", e)
+		return fmt.Errorf("Failed to read private key: %s", e)
 	}
 
 	keyfile, e := ioutil.ReadFile(conf.PrivateKeyFile)
