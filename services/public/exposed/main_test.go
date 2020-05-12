@@ -13,7 +13,8 @@ func TestExposed(t *testing.T) {
 	var err error
 	var rr *httptest.ResponseRecorder
 
-	conf = Config{Port: 8080, KeyFile: "ec256-key"}
+	// conf = Config{Port: 8080, KeyFile: "ec256-key"}
+	initConfig("config.ini")
 
 	t.Log("GET without date")
 	req, err = http.NewRequest("GET", "/", nil)

@@ -10,15 +10,15 @@ test:
 	go test -v
 
 post:
-	@echo "POST $(URL)/exposed"
+	@echo "POST $(URL)/"
 	@curl -sS -X POST \
 		--header "Content-Type: application/json" \
 		--data '{"key":"SAMPLE_KEY","keyDate":1234}' \
-		$(URL)/exposed
+		$(URL)/
 
 get:
-	@echo "GET $(URL)/exposed/$$(date +"%s")"
-	@curl -sS -X GET $(URL)/exposed/$$(date +"%s") | \
+	@echo "GET $(URL)/$$(date +"%s")"
+	@curl -sS -X GET $(URL)/$$(date +"%s") | \
 		protoc --decode main.ProtoExposedList exposed.proto
 
 ec256-key:
