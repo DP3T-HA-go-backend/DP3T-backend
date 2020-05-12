@@ -30,6 +30,12 @@ type Config struct {
 	PrivateKey     *ecdsa.PrivateKey
 }
 
+const publicKey string = "" +
+	"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlL" +
+	"b1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhy" +
+	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
+	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+
 var conf Config
 
 var data ProtoExposedList
@@ -38,10 +44,6 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// TODO: Validate date & retrieve data based on it from key-value store
 	// var date string
 	// date = ps.ByName("date")
-
-	w.Header().Set("Content-Type", "application/x-protobuf")
-	w.Header().Set("x-public-key", "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhySjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t")
-	w.Header().Set("x-batch-release-time", strconv.FormatInt(makeTimestampMillis(), 10))
 
 	m, err := proto.Marshal(&data)
 	if err != nil {
@@ -70,10 +72,13 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	fmt.Println("GET:", r.URL)
 
-	w.Header().Set("Digest", "sha-256="+digest)
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.Header().Set("Digest", "sha-256=" + digest)
+	w.Header().Set("Signature", signature)
+	w.Header().Set("x-public-key", publicKey)
+	w.Header().Set("x-batch-release-time", strconv.FormatInt(makeTimestampMillis(), 10))
 	w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
 	w.Header().Set("x-protobuf-schema", "exposed.proto")
-	w.Header().Set("Signature", signature)
 	w.WriteHeader(http.StatusOK)
 	w.Write(m)
 }
