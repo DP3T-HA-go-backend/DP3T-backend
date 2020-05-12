@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 
-	"./lib"
+//	"./lib"
+	"DP3T-backend/kvs/lib"
 )
 
 
@@ -14,10 +15,12 @@ func main() {
 
 	//kvs.KVDelete("fooo")
 
-	/*resp := kvs.KVGet("foo")
+	/*
+	resp := kvs.KVGet("foo")
 	for _, ev := range resp.Kvs {
                 fmt.Printf("%s : %s\n", ev.Key, ev.Value)
-        }*/
+        }
+	*/
 
 	resp := kvs.KVGetWithPrefix("fo")
 	for _, ev := range resp.Kvs {
