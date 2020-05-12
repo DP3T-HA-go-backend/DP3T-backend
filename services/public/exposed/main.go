@@ -100,7 +100,9 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	exposee := &ProtoExposee{}
 	if err := protojson.Unmarshal(in, exposee); err != nil {
-		log.Fatal("Failed to parse Exposee: ", err)
+		fmt.Println("ERROR:", "JSON decoding:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	// TODO: Add data to key-value store
