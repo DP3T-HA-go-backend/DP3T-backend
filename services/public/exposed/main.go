@@ -47,7 +47,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	m, err := proto.Marshal(&data)
 	if err != nil {
-		fmt.Println("ERROR:", "protobuf encoding:", err)
+		fmt.Println("ERROR:", "encoding protobuf:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,20 +93,22 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	in, err := ioutil.ReadAll(io.LimitReader(r.Body, 1024))
 	if err != nil {
-		log.Fatal("Error reading request:", err)
+		fmt.Println("ERROR:", "reading request:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-
-	fmt.Println("POST:", r.URL, string(in))
 
 	exposee := &ProtoExposee{}
 	if err := protojson.Unmarshal(in, exposee); err != nil {
-		fmt.Println("ERROR:", "JSON decoding:", err)
+		fmt.Println("ERROR:", "decoding JSON:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// TODO: Add data to key-value store
 	data.Exposed = append(data.Exposed, exposee)
+
+	fmt.Println("POST:", r.URL, string(in))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
