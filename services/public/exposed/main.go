@@ -159,6 +159,8 @@ func main() {
 	router.POST("/", expose)
 
 	addr := fmt.Sprint(":", conf.Port)
+
+	fmt.Println("Config file:", *conf_file_p)
 	fmt.Println("Key file:", conf.PrivateKeyFile)
 	fmt.Println("Listening on:", addr)
 
