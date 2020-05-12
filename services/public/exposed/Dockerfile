@@ -9,7 +9,8 @@ RUN apt-get update && \
     go install google.golang.org/protobuf/cmd/protoc-gen-go && \
     cd /build && \
     make clean && \
-    make
+    make && \
+    make test
 
 FROM alpine
 

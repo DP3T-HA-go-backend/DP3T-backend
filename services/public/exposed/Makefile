@@ -6,6 +6,9 @@ exposed: main.go exposed.pb.go
 exposed.pb.go: exposed.proto
 	PATH=$(PATH):$(HOME)/go/bin protoc --go_out=. exposed.proto
 
+test:
+	go test -v
+
 post:
 	@echo "POST $(URL)/exposed"
 	@curl -sS -X POST \
