@@ -47,7 +47,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	m, err := proto.Marshal(&data)
 	if err != nil {
-		fmt.Println("ERROR:", "encoding protobuf:", err)
+		log.Println("ERROR:", "Encoding protobuf:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -72,12 +72,12 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	signature, err := token.SignedString(conf.PrivateKey)
 	if err != nil {
-		fmt.Println("ERROR:", "token signature:", err)
+		log.Println("ERROR:", "Token signature:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println("GET:", r.URL)
+	log.Println("INFO: GET", r.URL)
 
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.Header().Set("Digest", "sha-256=" + digest)
@@ -93,14 +93,14 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	in, err := ioutil.ReadAll(io.LimitReader(r.Body, 1024))
 	if err != nil {
-		fmt.Println("ERROR:", "reading request:", err)
+		log.Println("ERROR:", "Reading request:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	exposee := &ProtoExposee{}
 	if err := protojson.Unmarshal(in, exposee); err != nil {
-		fmt.Println("ERROR:", "decoding JSON:", err)
+		log.Println("ERROR:", "Decoding JSON:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -108,7 +108,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// TODO: Add data to key-value store
 	data.Exposed = append(data.Exposed, exposee)
 
-	fmt.Println("POST:", r.URL, string(in))
+	log.Println("INFO: POST", r.URL, string(in))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -168,9 +168,9 @@ func main() {
 
 	addr := fmt.Sprint(":", conf.Port)
 
-	fmt.Println("Config file:", *conf_file_p)
-	fmt.Println("Key file:", conf.PrivateKeyFile)
-	fmt.Println("Listening on:", addr)
+	log.Println("INFO: Config file:", *conf_file_p)
+	log.Println("INFO: Key file:", conf.PrivateKeyFile)
+	log.Println("INFO: Listening on:", addr)
 
 	log.Fatal(http.ListenAndServe(addr, router))
 }

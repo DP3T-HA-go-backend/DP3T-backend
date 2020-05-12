@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,8 +15,14 @@ func TestExposed(t *testing.T) {
 	var err error
 	var rr *httptest.ResponseRecorder
 
-	// conf = Config{Port: 8080, KeyFile: "ec256-key"}
-	initConfig("config.ini")
+	err = initConfig("config.ini")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Disable logging
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
 
 	t.Log("GET without date")
 	req, err = http.NewRequest("GET", "/", nil)
