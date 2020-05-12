@@ -1,10 +1,9 @@
 package main
 
 import (
-	"os"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/pem"
 	"flag"
@@ -13,15 +12,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"gopkg.in/ini.v1"
-	"gopkg.in/dgrijalva/jwt-go.v3"
 	"github.com/julienschmidt/httprouter"
+	"gopkg.in/dgrijalva/jwt-go.v3"
+	"gopkg.in/ini.v1"
 )
 
 const PUBLIC_KEY string = "" +
