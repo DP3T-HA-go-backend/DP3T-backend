@@ -1,10 +1,10 @@
-package storage
+package store
 
 import (
 	"dp3t-backend/api"
 )
 
-type Storage interface {
+type Store interface {
 	Init() error
 
 	// Returns the list of exposees for a given day

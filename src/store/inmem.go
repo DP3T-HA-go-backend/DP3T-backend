@@ -1,4 +1,4 @@
-package storage
+package store
 
 import (
 	"dp3t-backend/api"

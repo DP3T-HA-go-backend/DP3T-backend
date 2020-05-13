@@ -2,7 +2,7 @@ package main
 
 import (
 	"dp3t-backend/api"
-	"dp3t-backend/storage"
+	"dp3t-backend/store"
 
 	"crypto/ecdsa"
 	"crypto/sha256"
@@ -41,7 +41,7 @@ type Config struct {
 
 var conf Config
 
-var store storage.Storage
+var data store.Store
 
 func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// TODO: Validate date & retrieve data based on it from key-value store
@@ -49,9 +49,9 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// date = ps.ByName("date")
 
 	// TODO: Need to pass an appropriate time value
-	data, _ := store.GetExposed(1234)
+	exposed, _ := data.GetExposed(1234)
 
-	m, err := proto.Marshal(data)
+	m, err := proto.Marshal(exposed)
 	if err != nil {
 		log.Println("ERROR: Encoding protobuf:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -111,7 +111,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	store.AddExposee(exposee)
+	data.AddExposee(exposee)
 
 	log.Println("INFO: POST", r.URL, string(in))
 
@@ -161,8 +161,8 @@ func main() {
 		log.Fatal("ERROR: ", err)
 	}
 
-	store = &storage.InMem{}
-	store.Init()
+	data = &store.InMem{}
+	data.Init()
 
 	router := httprouter.New()
 	router.GET("/:date", exposed)
