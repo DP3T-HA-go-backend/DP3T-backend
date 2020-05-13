@@ -97,7 +97,10 @@ func main() {
 		log.Fatal("ERROR: ", err)
 	}
 
-	data.Init(conf)
+	err = data.Init(conf)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
+	}
 
 	router := httprouter.New()
 	router.GET("/", gencode)
