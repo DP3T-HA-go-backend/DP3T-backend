@@ -1,8 +1,6 @@
 package server
 
 import (
-	"dp3t-backend/store"
-
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -95,15 +93,4 @@ func InitConfig(conf_file string) (*Config, error) {
 	}
 
 	return conf, nil
-}
-
-func InitStore(conf *Config) (store.Store, error) {
-	switch conf.StoreType {
-	case "inmem":
-		return &store.InMem{}, nil
-	case "etcd":
-		return &store.Etcd{}, nil
-	default:
-		return nil, fmt.Errorf("Unknown store kind %s", conf.StoreType)
-	}
 }

@@ -92,12 +92,12 @@ func main() {
 		log.Fatal("ERROR: ", err)
 	}
 
-	data, err = server.InitStore(conf)
+	data, err = store.InitStore(conf)
 	if err != nil {
 		log.Fatal("ERROR: ", err)
 	}
 
-	data.Init()
+	data.Init(conf)
 
 	router := httprouter.New()
 	router.GET("/", gencode)

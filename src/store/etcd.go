@@ -3,9 +3,10 @@ package store
 import (
     "fmt"
     "dp3t-backend/api"
+	"dp3t-backend/server"
     kvs "dp3t-backend/etcd"
-    "errors"
 
+    "errors"
     "crypto/tls"
     "time"
 
@@ -24,7 +25,7 @@ type Etcd struct {
     ClientConfig clientv3.Config
 }
 
-func (e *Etcd) Init() error {
+func (e *Etcd) Init(conf *server.Config) error {
     fmt.Println("Inicializamos todo")
     e.DialTimeout = 5 * time.Second
     e.RequestTimeout = 10 * time.Second

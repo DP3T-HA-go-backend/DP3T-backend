@@ -2,6 +2,7 @@ package store
 
 import (
 	"dp3t-backend/api"
+	"dp3t-backend/server"
 )
 
 type InMem struct {
@@ -14,7 +15,7 @@ type codeValue struct {
 	used bool
 }
 
-func (m *InMem) Init() error {
+func (m *InMem) Init(conf *server.Config) error {
 	m.exposed = &api.ProtoExposedList{
 		BatchReleaseTime: 123456789,
 		Exposed:          []*api.ProtoExposee{},
