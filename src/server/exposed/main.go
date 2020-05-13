@@ -33,9 +33,16 @@ const PUBLIC_KEY string = "" +
 	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
 	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
 
+var STORE_TYPES = map[string]bool {
+	"inmem": true,
+	"etcd": true,
+}
+
 type Config struct {
 	Port           int    `ini:"port"`
 	PrivateKeyFile string `ini:"private-key-file"`
+	StoreType      string `ini:"store"`
+
 	PrivateKey     *ecdsa.PrivateKey
 }
 
@@ -149,6 +156,10 @@ func initConfig(conf_file string) error {
 		return fmt.Errorf("Failed to parse EC private key: %s", e)
 	}
 
+	if _, found := STORE_TYPES[conf.StoreType]; !found {
+		return fmt.Errorf("Unknown store kind %s", conf.StoreType)
+	}
+
 	return nil
 }
 
@@ -161,7 +172,14 @@ func main() {
 		log.Fatal("ERROR: ", err)
 	}
 
-	data = &store.InMem{}
+	if conf.StoreType == "inmem" {
+		data = &store.InMem{}
+	}
+
+	if conf.StoreType == "etcd" {
+		data = &store.InMem{}
+	}
+
 	data.Init()
 
 	router := httprouter.New()
