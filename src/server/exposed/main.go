@@ -177,7 +177,7 @@ func main() {
 	}
 
 	if conf.StoreType == "etcd" {
-		data = &store.InMem{}
+		data = &store.Etcd{}
 	}
 
 	data.Init()
