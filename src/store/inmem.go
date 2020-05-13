@@ -19,9 +19,7 @@ func (m *InMem) Init() error {
 		BatchReleaseTime: 123456789,
 		Exposed:          []*api.ProtoExposee{},
 	}
-
 	m.codes = make(map[string]codeValue)
-
 	return nil
 }
 

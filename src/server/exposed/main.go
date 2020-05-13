@@ -153,7 +153,7 @@ func initConfig(conf_file string) error {
 }
 
 func main() {
-	conf_file_p := flag.String("config", "./config.ini", "path to config file")
+	conf_file_p := flag.String("config", "./config/exposed.ini", "path to config file")
 	flag.Parse()
 
 	err := initConfig(*conf_file_p)

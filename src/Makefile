@@ -16,6 +16,11 @@ proto: $(PB_GO)
 %.pb.go: %.proto
 	PATH=$(PATH):$(HOME)/go/bin protoc --go_out=. $<
 
+docker:
+	docker build -f docker/Dockerfile.exposed -t dp3t.public.exposed:latest .
+
 clean:
 	rm -f $(BUILD_BIN)
 	rm -f $(PB_GO)
+
+.PHONY: docker clean
