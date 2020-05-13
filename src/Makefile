@@ -6,9 +6,6 @@ PB_GO = $(PROTO:.proto=.pb.go)
 
 default: proto build
 
-install:
-	go install ./...
-
 build: $(BUILD_BIN)
 
 %main: %main.go
