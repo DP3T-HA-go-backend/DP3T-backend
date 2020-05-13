@@ -3,19 +3,16 @@ package main
 import (
 	"dp3t-backend/api"
 	"dp3t-backend/store"
+	"dp3t-backend/server"
 
-	"crypto/ecdsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -24,30 +21,9 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"gopkg.in/dgrijalva/jwt-go.v3"
-	"gopkg.in/ini.v1"
 )
 
-const PUBLIC_KEY string = "" +
-	"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlL" +
-	"b1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhy" +
-	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
-	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
-
-var STORE_TYPES = map[string]bool {
-	"inmem": true,
-	"etcd": true,
-}
-
-type Config struct {
-	Port           int    `ini:"port"`
-	PrivateKeyFile string `ini:"private-key-file"`
-	StoreType      string `ini:"store"`
-
-	PrivateKey     *ecdsa.PrivateKey
-}
-
-var conf Config
-
+var conf *server.Config
 var data store.Store
 
 func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -95,7 +71,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.Header().Set("Digest", "sha-256=" + digest)
 	w.Header().Set("Signature", signature)
-	w.Header().Set("x-public-key", PUBLIC_KEY)
+	w.Header().Set("x-public-key", server.PUBLIC_KEY)
 	w.Header().Set("x-batch-release-time", time_ms)
 	w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
 	w.Header().Set("x-protobuf-schema", "exposed.proto")
@@ -127,60 +103,19 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "OK\n")
 }
 
-func initConfig(conf_file string) error {
-	i, e := ini.Load(conf_file)
-	if e != nil {
-		return fmt.Errorf("Failed to read config file: %s", e)
-	}
-
-	if e := i.MapTo(&conf); e != nil {
-		return fmt.Errorf("Failed to decode config: %s", e)
-	}
-
-	if _, e := os.Stat(conf.PrivateKeyFile); e != nil {
-		return fmt.Errorf("Failed to read private key: %s", e)
-	}
-
-	keyfile, e := ioutil.ReadFile(conf.PrivateKeyFile)
-	if e != nil {
-		return fmt.Errorf("Failed to read private key: %s", e)
-	}
-
-	block, _ := pem.Decode(keyfile)
-	if block == nil || block.Type != "EC PRIVATE KEY" {
-		return fmt.Errorf("Failed to decode PEM block containing EC private key")
-	}
-
-	conf.PrivateKey, e = x509.ParseECPrivateKey(block.Bytes)
-	if e != nil {
-		return fmt.Errorf("Failed to parse EC private key: %s", e)
-	}
-
-	if _, found := STORE_TYPES[conf.StoreType]; !found {
-		return fmt.Errorf("Unknown store kind %s", conf.StoreType)
-	}
-
-	return nil
-}
-
 func main() {
 	conf_file_p := flag.String("config", "./config/exposed.ini", "path to config file")
 	flag.Parse()
 
-	err := initConfig(*conf_file_p)
+	conf, err := server.InitConfig(*conf_file_p)
 	if err != nil {
 		log.Fatal("ERROR: ", err)
 	}
 
-	if conf.StoreType == "inmem" {
-		data = &store.InMem{}
+	data, err = server.InitStore(conf)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
 	}
-
-	if conf.StoreType == "etcd" {
-		data = &store.Etcd{}
-	}
-
-	data.Init()
 
 	router := httprouter.New()
 	router.GET("/:date", exposed)
@@ -190,6 +125,7 @@ func main() {
 
 	log.Println("INFO: Config file:", *conf_file_p)
 	log.Println("INFO: Key file:", conf.PrivateKeyFile)
+	log.Println("INFO: Store:", conf.StoreType)
 	log.Println("INFO: Listening on:", addr)
 
 	log.Fatal(http.ListenAndServe(addr, router))
