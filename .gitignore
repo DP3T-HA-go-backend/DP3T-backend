@@ -3,3 +3,6 @@ services/public/exposed/exposed.pb.go
 services/public/demo-go/demo-go
 services/public/exposed/ec256-key
 services/public/exposed/ec256-key.pub
+
+src/api/exposed.pb.go
+src/server/exposed/main
