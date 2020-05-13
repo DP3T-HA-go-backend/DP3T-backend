@@ -21,9 +21,9 @@ var (
 
 func tlsConfig() *tls.Config {
 	tlsInfo := transport.TLSInfo{
-		CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
-		KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
-		TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
+		CertFile:      "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/node-node1.pem",
+		KeyFile:       "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/node-node1-key.pem",
+		TrustedCAFile: "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/ca.pem",
 	}
 	tlsConfig, err := tlsInfo.ClientConfig()
 	if err != nil {
@@ -122,6 +122,34 @@ func KVDelete(key string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+//KVDelete one existing Key and KVPut another one only if the first existed and was deleted
+func KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string) error {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+
+	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(KeyToPut), "=", 0)
+	ExistsKeyToDelete := clientv3.Compare(clientv3.CreateRevision(KeyToDelete), ">", 0)
+	_, err = cli.Txn(ctx).If(NotExistsKeyToPut, ExistsKeyToDelete).
+		Then(clientv3.OpDelete(KeyToDelete), clientv3.OpPut(KeyToPut, ValueToPut)).Commit()
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	return nil
 }
 
 //KVDeleteWithPrefix to delete all the keys with the prefix key
