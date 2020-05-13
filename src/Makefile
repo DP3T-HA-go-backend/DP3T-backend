@@ -19,7 +19,7 @@ proto: $(PB_GO)
 docker: docker-exposed docker-authcode
 
 docker-exposed:
-	docker build -f docker/Dockerfile.exposed -t dp3t.public.exposed:latest .
+	docker build -f docker/Dockerfile.exposed -t dp3t.exposed.protobuf.api:latest .
 
 docker-authcode:
 	docker build -f docker/Dockerfile.authcode -t dp3t.public.authcode:latest .
