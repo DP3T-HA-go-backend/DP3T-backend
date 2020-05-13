@@ -94,13 +94,17 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if exposee.AuthData == nil {
+	if exposee.AuthData == nil || len(exposee.AuthData.Value) == 0 {
 		log.Println("ERROR: Missing AuthData")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	data.AddExposee(exposee)
+	if err := data.AddExposee(exposee); err != nil {
+		log.Println("ERROR: Failed to add exposee:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	log.Println("INFO: POST", r.URL, string(in))
 
