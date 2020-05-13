@@ -37,7 +37,7 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			generatedcode = generatedcode + strconv.Itoa(r1.Intn(10))
 		}
 
-		if data.AddAuthCode(generatedcode) == nil {
+		if err := data.AddAuthCode(generatedcode); err == nil {
 			break
 		}
 	}
@@ -86,7 +86,8 @@ func main() {
 	conf_file_p := flag.String("config", "./config/authcode.ini", "path to config file")
 	flag.Parse()
 
-	conf, err := server.InitConfig(*conf_file_p)
+	var err error
+	conf, err = server.InitConfig(*conf_file_p)
 	if err != nil {
 		log.Fatal("ERROR: ", err)
 	}
