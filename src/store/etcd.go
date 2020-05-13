@@ -1,7 +1,6 @@
 package store
 
 import (
-    "fmt"
     "dp3t-backend/api"
 	"dp3t-backend/server"
     kvs "dp3t-backend/etcd"
@@ -26,14 +25,13 @@ type Etcd struct {
 }
 
 func (e *Etcd) Init(conf *server.Config) error {
-    fmt.Println("Inicializamos todo")
     e.DialTimeout = 5 * time.Second
     e.RequestTimeout = 10 * time.Second
-    e.Endpoints = []string{"10.0.26.10:2379", "10.0.26.11:2379", "10.0.26.13:2379"}
+    e.Endpoints = []string(conf.EtcdConfig.Endpoints)
     e.TLSInfo = transport.TLSInfo{
-        CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
-        KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
-        TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
+        CertFile:      conf.EtcdConfig.CertFile,
+        KeyFile:       conf.EtcdConfig.KeyFile,
+        TrustedCAFile: conf.EtcdConfig.CAFile,
     }
 
     var err error
