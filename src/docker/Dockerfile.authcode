@@ -18,6 +18,10 @@ RUN apk add --no-cache libc6-compat
 COPY config/ec256-key /service/etc/ec256-key
 COPY config/authcode-production.ini /service/etc/authcode.ini
 
+COPY config/etcd/node-node1.pem /service/etc/etcd/node-node1.pem
+COPY config/etcd/node-node1-key.pem /service/etc/etcd/node-node1-key.pem
+COPY config/etcd/ca.pem /service/etc/etcd/ca.pem
+
 COPY --from=builder /build/server/authcode/main /service/bin/authcode
 
 EXPOSE 8080/tcp
