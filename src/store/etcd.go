@@ -42,9 +42,9 @@ func (e *Etcd) Init() error {
     }
 
     e.ClientConfig = clientv3.Config{
-    Endpoints:   e.Endpoints,
-    DialTimeout: e.DialTimeout,
-    TLS:         e.TLS,
+        Endpoints:   e.Endpoints,
+        DialTimeout: e.DialTimeout,
+        TLS:         e.TLS,
     }
 
     return nil
