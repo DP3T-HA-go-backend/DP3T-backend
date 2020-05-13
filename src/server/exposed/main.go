@@ -94,6 +94,12 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	if exposee.AuthData == nil {
+		log.Println("ERROR: Missing AuthData")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	data.AddExposee(exposee)
 
 	log.Println("INFO: POST", r.URL, string(in))

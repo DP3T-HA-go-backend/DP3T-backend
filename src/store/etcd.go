@@ -21,7 +21,7 @@ type Etcd struct {
 
     TLS *tls.Config
 
-    ClientConfig clientv3.Config
+    ClientConfig *clientv3.Config
 }
 
 func (e *Etcd) Init(conf *server.Config) error {
@@ -40,7 +40,7 @@ func (e *Etcd) Init(conf *server.Config) error {
         return err
     }
 
-    e.ClientConfig = clientv3.Config{
+    e.ClientConfig = &clientv3.Config{
         Endpoints:   e.Endpoints,
         DialTimeout: e.DialTimeout,
         TLS:         e.TLS,
@@ -55,7 +55,7 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 
 func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
     //KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string)
-    r1 := kvs.KVPutAndDelete(e.ClientConfig, exposee.AuthData.Value, string(exposee.Key), string(exposee.KeyDate), e.RequestTimeout)
+	r1 := kvs.KVPutAndDelete(e.ClientConfig, exposee.AuthData.Value, string(exposee.Key), string(exposee.KeyDate), e.RequestTimeout)
     if r1 != nil {
         return errors.New("Exposee could not be added")
     }

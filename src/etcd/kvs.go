@@ -35,14 +35,14 @@ import (
 // }
 
 //KVPut to put key and value
-func KVPut(cliconfig clientv3.Config, key string, value string) {
+func KVPut(cliconfig *clientv3.Config, key string, value string) {
     // tlsConfig := tlsConfig()
     // cli, err := clientv3.New(clientv3.Config{
     //     Endpoints:   endpoints,
     //     DialTimeout: dialTimeout,
     //     TLS:         tlsConfig,
     // })
-    cli, err := clientv3.New(cliconfig)
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -55,8 +55,8 @@ func KVPut(cliconfig clientv3.Config, key string, value string) {
 }
 
 //KVPutTTL to put key and value with a Time To Live in days
-func KVPutTTL(cliconfig clientv3.Config, key string, value string, days int64) {
-    cli, err := clientv3.New(cliconfig)
+func KVPutTTL(cliconfig *clientv3.Config, key string, value string, days int64) {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -76,8 +76,8 @@ func KVPutTTL(cliconfig clientv3.Config, key string, value string, days int64) {
 }
 
 // KVGet to Get a key
-func KVGet(cliconfig clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
-    cli, err := clientv3.New(cliconfig)
+func KVGet(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -94,8 +94,8 @@ func KVGet(cliconfig clientv3.Config, key string, requestTimeout time.Duration) 
 }
 
 //KVDelete to delete a key
-func KVDelete(cliconfig clientv3.Config, key string, requestTimeout time.Duration) {
-    cli, err := clientv3.New(cliconfig)
+func KVDelete(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -112,8 +112,8 @@ func KVDelete(cliconfig clientv3.Config, key string, requestTimeout time.Duratio
 }
 
 //KVPut only if the key did not exist
-func KVPutIfNotExists(cliconfig clientv3.Config, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
-    cli, err := clientv3.New(cliconfig)
+func KVPutIfNotExists(cliconfig *clientv3.Config, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -134,8 +134,8 @@ func KVPutIfNotExists(cliconfig clientv3.Config, KeyToPut string, ValueToPut str
 }
 
 //KVDelete only if the key did existed
-func KVDeleteIfExists(cliconfig clientv3.Config, KeyToDelete string, requestTimeout time.Duration) error {
-    cli, err := clientv3.New(cliconfig)
+func KVDeleteIfExists(cliconfig *clientv3.Config, KeyToDelete string, requestTimeout time.Duration) error {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -156,8 +156,8 @@ func KVDeleteIfExists(cliconfig clientv3.Config, KeyToDelete string, requestTime
 }
 
 //KVDelete one existing Key and KVPut another one only if the first existed and was deleted
-func KVPutAndDelete(cliconfig clientv3.Config, KeyToDelete string, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
-    cli, err := clientv3.New(cliconfig)
+func KVPutAndDelete(cliconfig *clientv3.Config, KeyToDelete string, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -180,8 +180,8 @@ func KVPutAndDelete(cliconfig clientv3.Config, KeyToDelete string, KeyToPut stri
 }
 
 //KVDeleteWithPrefix to delete all the keys with the prefix key
-func KVDeleteWithPrefix(cliconfig clientv3.Config, key string, requestTimeout time.Duration) {
-    cli, err := clientv3.New(cliconfig)
+func KVDeleteWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
@@ -208,8 +208,8 @@ func KVDeleteWithPrefix(cliconfig clientv3.Config, key string, requestTimeout ti
 }
 
 //KVGetWithPrefix to get all the keys with prefix key
-func KVGetWithPrefix(cliconfig clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
-    cli, err := clientv3.New(cliconfig)
+func KVGetWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
+    cli, err := clientv3.New(*cliconfig)
     if err != nil {
         log.Fatal(err)
     }
