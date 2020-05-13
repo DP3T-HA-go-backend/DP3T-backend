@@ -45,12 +45,11 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 
 func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 	//KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string)
-	r1 := kvs.KVPutAndDelete(exposee.DataAuth.value, exposee.key, exposee.keyDate)
+	r1 := kvs.KVPutAndDelete(exposee.AuthData.Value, string(exposee.Key), string(exposee.KeyDate))
 	if r1 != nil {
 		return errors.New("Exposee could not be added")
 	}
 	return nil
-}
 }
 
 func (e *Etcd) AddAuthCode(code string) error {
