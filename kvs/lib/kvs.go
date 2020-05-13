@@ -3,6 +3,7 @@ package kvs
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"log"
 
 	"fmt"
@@ -124,6 +125,33 @@ func KVDelete(key string) {
 	}
 }
 
+//KVPut only if the key did not exist
+func KVPutIfNotExists(KeyToPut string, ValueToPut string) error {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+
+	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(KeyToPut), "=", 0)
+	r, err := cli.Txn(ctx).If(NotExistsKeyToPut).Then(clientv3.OpPut(KeyToPut, ValueToPut)).Commit()
+
+	if r.Succeeded {
+		return nil
+	}
+
+	return errors.New("Key already existed")
+
+}
+
 //KVDelete one existing Key and KVPut another one only if the first existed and was deleted
 func KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string) error {
 	tlsConfig := tlsConfig()
@@ -142,14 +170,15 @@ func KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string) erro
 
 	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(KeyToPut), "=", 0)
 	ExistsKeyToDelete := clientv3.Compare(clientv3.CreateRevision(KeyToDelete), ">", 0)
-	_, err = cli.Txn(ctx).If(NotExistsKeyToPut, ExistsKeyToDelete).
+	r, err := cli.Txn(ctx).If(NotExistsKeyToPut, ExistsKeyToDelete).
 		Then(clientv3.OpDelete(KeyToDelete), clientv3.OpPut(KeyToPut, ValueToPut)).Commit()
-	if err != nil {
-		log.Fatal(err)
-		return err
+
+	if r.Succeeded {
+		return nil
 	}
 
-	return nil
+	return errors.New("Put/Delete could not be completed")
+
 }
 
 //KVDeleteWithPrefix to delete all the keys with the prefix key
