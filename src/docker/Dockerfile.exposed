@@ -15,7 +15,7 @@ FROM alpine
 
 RUN apk add --no-cache libc6-compat
 
-COPY config/ec256-key /service/etc/exposed/ec256-key
+COPY config/ec256-key /service/etc/ec256-key
 COPY config/exposed-production.ini /service/etc/exposed.ini
 
 COPY --from=builder /build/server/exposed/main /service/bin/exposed
