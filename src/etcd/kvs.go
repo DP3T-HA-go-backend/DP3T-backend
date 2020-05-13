@@ -152,6 +152,33 @@ func KVPutIfNotExists(KeyToPut string, ValueToPut string) error {
 
 }
 
+//KVDelete only if the key did existed
+func KVDeleteIfExists(KeyToDelete string) error {
+	tlsConfig := tlsConfig()
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: dialTimeout,
+		TLS:         tlsConfig,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cli.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+
+	ExistsKeyToDelete := clientv3.Compare(clientv3.CreateRevision(KeyToDelete), ">", 0)
+	r, err := cli.Txn(ctx).If(ExistsKeyToDelete).Then(clientv3.OpDelete(KeyToDelete)).Commit()
+
+	if r.Succeeded {
+		return nil
+	}
+
+	return errors.New("Key already existed")
+
+}
+
 //KVDelete one existing Key and KVPut another one only if the first existed and was deleted
 func KVPutAndDelete(KeyToDelete string, KeyToPut string, ValueToPut string) error {
 	tlsConfig := tlsConfig()

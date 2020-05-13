@@ -18,7 +18,6 @@ proto: $(PB_GO)
 
 docker: docker-exposed docker-authcode
 
-
 docker-exposed:
 	docker build -f docker/Dockerfile.exposed -t dp3t.public.exposed:latest .
 
