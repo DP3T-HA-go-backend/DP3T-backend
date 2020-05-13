@@ -7,3 +7,4 @@ services/public/exposed/ec256-key.pub
 src/api/exposed.pb.go
 src/config/ec256-key
 src/server/exposed/main
+src/server/authcode/main
