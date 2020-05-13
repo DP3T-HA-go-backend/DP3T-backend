@@ -22,7 +22,7 @@ docker-exposed:
 	docker build -f docker/Dockerfile.exposed -t dp3t.exposed.protobuf.api:latest .
 
 docker-authcode:
-	docker build -f docker/Dockerfile.authcode -t dp3t.public.authcode:latest .
+	docker build -f docker/Dockerfile.authcode -t dp3t.authcode.api:latest .
 
 clean:
 	rm -f $(BUILD_BIN)
