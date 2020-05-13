@@ -7,10 +7,8 @@ RUN apt-get update && \
     apt-get -y install protobuf-compiler && \
     go get google.golang.org/protobuf/cmd/protoc-gen-go && \
     go install google.golang.org/protobuf/cmd/protoc-gen-go && \
-    go get github.com/julienschmidt/httprouter && \
-    go get github.com/dgrijalva/jwt-go && \
-    go get github.com/spf13/viper && \
     cd /build && \
+    make clean && \
     make
 
 FROM alpine
@@ -24,3 +22,4 @@ COPY --from=builder /build/server/authcode/main /service/bin/authcode
 
 EXPOSE 8080/tcp
 ENTRYPOINT ["/service/bin/authcode"]
+CMD ["--config", "/service/etc/authcode.ini"]

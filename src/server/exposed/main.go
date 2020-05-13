@@ -117,6 +117,8 @@ func main() {
 		log.Fatal("ERROR: ", err)
 	}
 
+	data.Init()
+
 	router := httprouter.New()
 	router.GET("/:date", exposed)
 	router.POST("/", expose)

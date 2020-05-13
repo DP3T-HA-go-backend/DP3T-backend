@@ -1,57 +1,29 @@
 package main
 
 import (
+	"dp3t-backend/api"
 	"dp3t-backend/store"
+	"dp3t-backend/server"
 
 	"crypto/sha256"
-	"crypto/x509"
+	"flag"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
+	"gopkg.in/dgrijalva/jwt-go.v3"
 )
 
-type AuthCode struct {
-	Code string `json:"code"`
-}
-
-var code AuthCode
+var conf *server.Config
 var data store.Store
 
 func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("x-public-key", "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhySjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t")
-
-	mySigningKey, err0 := ioutil.ReadFile("/ec256-key")
-	if err0 != nil {
-		fmt.Println("Unable to load ECDSA private key: ", err0)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	block, _ := pem.Decode(mySigningKey)
-	if block == nil || block.Type != "EC PRIVATE KEY" {
-		fmt.Println("failed to decode PEM block containing EC privatekey")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	ecdsaKey, err2 := x509.ParseECPrivateKey(block.Bytes)
-	if err2 != nil {
-		fmt.Println("Unable to parse ECDSA private key: ", err2)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
@@ -70,62 +42,71 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		}
 	}
 
-	code = AuthCode{Code: generatedcode}
+	code := api.ProtoAuthData{Value: generatedcode}
 
 	m, err := json.Marshal(code)
-
 	if err != nil {
-		log.Fatal("Failed to encode AuthCode: ", err)
-	}
-
-	h := sha256.Sum256([]byte(m))
-	digest := base64.StdEncoding.EncodeToString(h[:])
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
-		"content-hash": digest,
-		"hash-alg":     "sha256",
-		"iss":          "d3pt",
-		"iat":          strconv.FormatInt(makeTimestampSeconds(), 10),
-		"exp":          strconv.FormatInt(makeTimestampSeconds()+1814400, 10),
-	})
-
-	tokenString, err := token.SignedString(ecdsaKey)
-	if err != nil {
+		log.Println("ERROR: Encoding JSON:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Digest", "sha-256="+digest)
-	w.Header().Set("Signature", tokenString)
-	w.WriteHeader(http.StatusOK)
-	fmt.Println("GET:", r.URL)
+	ts_s := time.Now().UnixNano() / int64(time.Second)
+	time := strconv.FormatInt(ts_s, 10)
+	time_exp := strconv.FormatInt(ts_s + 1814400, 10)
 
+	h := sha256.Sum256([]byte(m))
+	digest := base64.StdEncoding.EncodeToString(h[:])
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"content-hash":       digest,
+		"hash-alg":           "sha256",
+		"iss":                "d3pt",
+		"iat":                time,
+		"exp":                time_exp,
+	})
+
+	signature, err := token.SignedString(conf.PrivateKey)
+	if err != nil {
+		log.Println("ERROR: Token signature:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("INFO: GET", r.URL)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Digest", "sha-256=" + digest)
+	w.Header().Set("Signature", signature)
+	w.Header().Set("x-public-key", server.PUBLIC_KEY)
+	w.WriteHeader(http.StatusOK)
 	w.Write(m)
 }
 
-func makeTimestampMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func makeTimestampSeconds() int64 {
-	return time.Now().UnixNano() / int64(time.Second)
-}
-
 func main() {
-	viper.SetDefault("core.port", 8080)
+	conf_file_p := flag.String("config", "./config/authcode.ini", "path to config file")
+	flag.Parse()
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("ini")
-	viper.AddConfigPath("/service/etc/authcode/")
-	viper.AddConfigPath(".")
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal("Failed to read config file: ", err)
+	conf, err := server.InitConfig(*conf_file_p)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
 	}
+
+	data, err = server.InitStore(conf)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
+	}
+
+	data.Init()
 
 	router := httprouter.New()
 	router.GET("/", gencode)
 
-	addr := fmt.Sprint(":", viper.GetInt("core.port"))
-	fmt.Println("Listening on", addr)
+	addr := fmt.Sprint(":", conf.Port)
+
+	log.Println("INFO: Config file:", *conf_file_p)
+	log.Println("INFO: Key file:", conf.PrivateKeyFile)
+	log.Println("INFO: Store:", conf.StoreType)
+	log.Println("INFO: Listening on:", addr)
 
 	log.Fatal(http.ListenAndServe(addr, router))
 }
