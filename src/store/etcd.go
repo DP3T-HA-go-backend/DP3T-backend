@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"strings"
 
 	"crypto/tls"
 	"errors"
@@ -16,6 +17,9 @@ import (
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/pkg/transport"
 )
+
+var authcodesNamespace string = "/authcodes/"
+var exposedNamespace string = "/exposed/"
 
 type Etcd struct {
 	Endpoints      []string
@@ -55,13 +59,15 @@ func (e *Etcd) Init(conf *server.Config) error {
 
 func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 
-	r1 := kvs.KVGetAllKeys(e.ClientConfig, strconv.FormatInt(timestamp, 10), e.RequestTimeout)
+	r1 := kvs.KVGetAllKeys(e.ClientConfig, exposedNamespace, e.RequestTimeout)
 	if r1 != nil {
 		exposees := make([]*api.ProtoExposee, 0, len(r1.Kvs))
 		for _, exposee := range r1.Kvs {
-			key, _ := strconv.ParseInt(string(exposee.Key), 10, 64)
+			splits := strings.Split(string(exposee.Key), "/")
+			strkey := splits[len(splits)-1]
+			key, _ := strconv.ParseInt(strkey, 10, 64)
 
-			log.Printf("RAW: ExposeeKey: %s - KeyDate: %s\n", base64.StdEncoding.EncodeToString(exposee.Value), string(exposee.Key))
+			log.Printf("RAW: ExposeeKey: %s - KeyDate: %s\n", base64.StdEncoding.EncodeToString(exposee.Value), strkey)
 			exposees = append(exposees, &api.ProtoExposee{
 				Key:     exposee.Value,
 				KeyDate: key,
@@ -81,7 +87,7 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 	expirationTTL := int64(math.Ceil(float64(((time.Now().UnixNano() / int64(time.Millisecond)) - exposee.KeyDate) / 1000 * 3660 * 24)))
 	log.Printf("Storing new Exposee: Date: %s, Key %s", strconv.FormatInt(exposee.KeyDate, 10), base64.StdEncoding.EncodeToString(exposee.Key))
-	r1 := kvs.KVPutAndDelete(e.ClientConfig, exposee.AuthData.Value, strconv.FormatInt(exposee.KeyDate, 10), string(exposee.Key), expirationTTL, e.RequestTimeout)
+	r1 := kvs.KVPutAndDelete(e.ClientConfig, authcodesNamespace, exposee.AuthData.Value, exposedNamespace, strconv.FormatInt(exposee.KeyDate, 10), string(exposee.Key), expirationTTL, e.RequestTimeout)
 	if r1 != nil {
 		return errors.New("Exposee could not be added")
 	}
@@ -89,7 +95,7 @@ func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 }
 
 func (e *Etcd) AddAuthCode(code string) error {
-	r1 := kvs.KVPutIfNotExists(e.ClientConfig, code, "", e.RequestTimeout)
+	r1 := kvs.KVPutIfNotExists(e.ClientConfig, authcodesNamespace, code, "", e.RequestTimeout)
 	if r1 != nil {
 		return errors.New("Authcode already existed")
 	}
