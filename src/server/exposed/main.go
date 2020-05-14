@@ -26,19 +26,9 @@ import (
 
 var conf *server.Config
 var data store.Store
-var batchLength int64 = 2 * 3600 * 1000           // 2hrs
-var retentionPeriod int64 = 21 * 24 * 3600 * 1000 // 21 days
 
-type AuthData struct {
-	Value string `json:"value"`
-}
-
-type Exposed struct {
-	Exposed AuthData `json:"authData"`
-	Fake    string   `json:"fake"` // can be 0 or 1
-	Key     string   `json:"key"`
-	KeyDate string   `json:"keyData"`
-}
+const batchLength int64 = 2 * 3600 * 1000           // 2hrs
+const retentionPeriod int64 = 21 * 24 * 3600 * 1000 // 21 days
 
 func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
@@ -118,14 +108,14 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	in, err := ioutil.ReadAll(io.LimitReader(r.Body, 1024))
 	if err != nil {
 		log.Println("ERROR: Reading request:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	exposee := &api.ProtoExposee{}
 	if err := protojson.Unmarshal(in, exposee); err != nil {
 		log.Println("ERROR: Decoding JSON:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -146,6 +136,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w.WriteHeader(http.StatusNotFound)
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			log.Printf("Could not write decoding error: %s", err)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		return
@@ -153,7 +144,7 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	if exposee.AuthData == nil || len(exposee.AuthData.Value) == 0 {
 		log.Println("ERROR: Missing AuthData")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -200,8 +191,6 @@ func main() {
 	log.Println("INFO: Key file:", conf.PrivateKeyFile)
 	log.Println("INFO: Store:", conf.StoreType)
 	log.Println("INFO: Listening on:", addr)
-
-	//data.ExpireExposees()
 
 	log.Fatal(http.ListenAndServe(addr, router))
 }
