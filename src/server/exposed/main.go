@@ -2,11 +2,12 @@ package main
 
 import (
 	"dp3t-backend/api"
-	"dp3t-backend/store"
 	"dp3t-backend/server"
+	"dp3t-backend/store"
 
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -25,14 +26,55 @@ import (
 
 var conf *server.Config
 var data store.Store
+var batchLength int64 = 2 * 3600 * 1000           // 2hrs
+var retentionPeriod int64 = 21 * 24 * 3600 * 1000 // 21 days
+
+type AuthData struct {
+	Value string `json:"value"`
+}
+
+type Exposed struct {
+	Exposed AuthData `json:"authData"`
+	Fake    string   `json:"fake"` // can be 0 or 1
+	Key     string   `json:"key"`
+	KeyDate string   `json:"keyData"`
+}
 
 func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// TODO: Validate date & retrieve data based on it from key-value store
-	// var date string
-	// date = ps.ByName("date")
 
-	// TODO: Need to pass an appropriate time value
-	exposed, _ := data.GetExposed(1234)
+	ts_s := time.Now().UnixNano() / int64(time.Second)
+	ts_ms := time.Now().UnixNano() / int64(time.Millisecond)
+
+	time := strconv.FormatInt(ts_s, 10)
+	time_exp := strconv.FormatInt(ts_s+1814400, 10)
+	time_ms := strconv.FormatInt(ts_ms, 10)
+
+	batchReleaseTime, err := strconv.ParseInt(ps.ByName("date"), 10, 64)
+	if err != nil {
+		log.Println("ERROR: Processing KeyDate as int64:", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	requestInFuture := batchReleaseTime > ts_ms
+	requestNotAlignedToDay := ((batchReleaseTime % batchLength) != 0)
+	requestForDataOlderThanRetentionPeriod := batchReleaseTime < (ts_ms - retentionPeriod)
+
+	if requestInFuture || requestNotAlignedToDay || requestForDataOlderThanRetentionPeriod {
+		log.Printf("Date out of range\n")
+		log.Printf("  Variables: batchReleaseTime (%d) - batchLength(%d)\n", batchReleaseTime, batchLength)
+		log.Printf("             requestInFuture (%t) - requestNotAlignedToDay(%t) - requestForDataOlderThanRetentionPeriod(%t)\n",
+			requestInFuture, requestNotAlignedToDay, requestForDataOlderThanRetentionPeriod)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Printf("Could not write decoding error: %s", err)
+			return
+		}
+		return
+	}
+
+	exposed, err := data.GetExposed(batchReleaseTime)
 
 	m, err := proto.Marshal(exposed)
 	if err != nil {
@@ -40,13 +82,6 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	ts_s := time.Now().UnixNano() / int64(time.Second)
-	ts_ms := time.Now().UnixNano() / int64(time.Millisecond)
-
-	time := strconv.FormatInt(ts_s, 10)
-	time_exp := strconv.FormatInt(ts_s + 1814400, 10)
-	time_ms := strconv.FormatInt(ts_ms, 10)
 
 	h := sha256.Sum256([]byte(m))
 	digest := base64.StdEncoding.EncodeToString(h[:])
@@ -69,7 +104,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Println("INFO: GET", r.URL)
 
 	w.Header().Set("Content-Type", "application/x-protobuf")
-	w.Header().Set("Digest", "sha-256=" + digest)
+	w.Header().Set("Digest", "sha-256="+digest)
 	w.Header().Set("Signature", signature)
 	w.Header().Set("x-public-key", server.PUBLIC_KEY)
 	w.Header().Set("x-batch-release-time", time_ms)
@@ -91,6 +126,26 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if err := protojson.Unmarshal(in, exposee); err != nil {
 		log.Println("ERROR: Decoding JSON:", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("After JSON unmarshall: %d - %s\n", exposee.KeyDate, exposee.Key)
+	ts_ms := time.Now().UnixNano() / int64(time.Millisecond)
+
+	// Tolerance +-24h
+	requestInFuture := exposee.KeyDate > (ts_ms + 24*3600*1000)
+	requestInPast := exposee.KeyDate < (ts_ms - 24*3600*1000)
+
+	if requestInFuture || requestInPast {
+		log.Printf("Date out of range (%s)", err)
+		log.Printf("  Variables: exposee.KeyDate (%d) \n", exposee.KeyDate)
+		log.Printf("             requestInFuture (%t) - requestInPast(%t)\n", requestInFuture, requestInPast)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Printf("Could not write decoding error: %s", err)
+			return
+		}
 		return
 	}
 
@@ -143,6 +198,8 @@ func main() {
 	log.Println("INFO: Key file:", conf.PrivateKeyFile)
 	log.Println("INFO: Store:", conf.StoreType)
 	log.Println("INFO: Listening on:", addr)
+
+	//data.ExpireExposees()
 
 	log.Fatal(http.ListenAndServe(addr, router))
 }
