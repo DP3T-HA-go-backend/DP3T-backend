@@ -112,7 +112,7 @@ func KVDelete(cliconfig *clientv3.Config, key string, requestTimeout time.Durati
 }
 
 //KVPut only if the key did not exist
-func KVPutIfNotExists(cliconfig *clientv3.Config, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
+func KVPutIfNotExists(cliconfig *clientv3.Config, putNamespace string, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
 		log.Fatal(err)
@@ -122,8 +122,8 @@ func KVPutIfNotExists(cliconfig *clientv3.Config, KeyToPut string, ValueToPut st
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
-	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(KeyToPut), "=", 0)
-	r, err := cli.Txn(ctx).If(NotExistsKeyToPut).Then(clientv3.OpPut(KeyToPut, ValueToPut)).Commit()
+	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(putNamespace+KeyToPut), "=", 0)
+	r, err := cli.Txn(ctx).If(NotExistsKeyToPut).Then(clientv3.OpPut(putNamespace+KeyToPut, ValueToPut)).Commit()
 
 	if r.Succeeded {
 		return nil
@@ -156,7 +156,8 @@ func KVDeleteIfExists(cliconfig *clientv3.Config, KeyToDelete string, requestTim
 }
 
 //KVDelete one existing Key and KVPut another one only if the first existed and was deleted
-func KVPutAndDelete(cliconfig *clientv3.Config, KeyToDelete string, KeyToPut string, ValueToPut string, TTL int64, requestTimeout time.Duration) error {
+func KVPutAndDelete(cliconfig *clientv3.Config, deleteNamespace string, KeyToDelete string, putNamespace string,
+	KeyToPut string, ValueToPut string, TTL int64, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
 		log.Fatal(err)
@@ -172,10 +173,10 @@ func KVPutAndDelete(cliconfig *clientv3.Config, KeyToDelete string, KeyToPut str
 		log.Fatal(err)
 	}
 
-	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(KeyToPut), "=", 0)
-	ExistsKeyToDelete := clientv3.Compare(clientv3.CreateRevision(KeyToDelete), ">", 0)
+	NotExistsKeyToPut := clientv3.Compare(clientv3.CreateRevision(putNamespace+KeyToPut), "=", 0)
+	ExistsKeyToDelete := clientv3.Compare(clientv3.CreateRevision(deleteNamespace+KeyToDelete), ">", 0)
 	r, err := cli.Txn(ctx).If(NotExistsKeyToPut, ExistsKeyToDelete).
-		Then(clientv3.OpDelete(KeyToDelete), clientv3.OpPut(KeyToPut, ValueToPut, clientv3.WithLease(resp.ID))).Commit()
+		Then(clientv3.OpDelete(deleteNamespace+KeyToDelete), clientv3.OpPut(putNamespace+KeyToPut, ValueToPut, clientv3.WithLease(resp.ID))).Commit()
 
 	if r.Succeeded {
 		return nil
@@ -231,9 +232,9 @@ func KVGetWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout time
 	return resp
 }
 
-//KVGetWithRange to get all the keys within a range  [key, end).
-func KVGetAllKeys(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
+func KVGetAllKeys(cliconfig *clientv3.Config, keyNamespace string, requestTimeout time.Duration) *clientv3.GetResponse {
 	cli, err := clientv3.New(*cliconfig)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -241,7 +242,8 @@ func KVGetAllKeys(cliconfig *clientv3.Config, key string, requestTimeout time.Du
 
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 
-	resp, err := cli.Get(ctx, key, clientv3.WithRange("\x00"))
+	//resp, err := cli.Get(ctx, key, clientv3.WithRange("\x00"))
+	resp, err := cli.Get(ctx, keyNamespace, clientv3.WithPrefix())
 	cancel()
 	if err != nil {
 		return nil
