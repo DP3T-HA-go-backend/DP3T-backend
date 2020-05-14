@@ -80,7 +80,7 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 
 func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 	expirationTTL := int64(math.Ceil(float64(((time.Now().UnixNano() / int64(time.Millisecond)) - exposee.KeyDate) / 1000 * 3660 * 24)))
-	log.Printf("Storing new Exposee: Date: %s, Key %v", strconv.FormatInt(exposee.KeyDate, 10), string(exposee.Key))
+	log.Printf("Storing new Exposee: Date: %s, Key %s", strconv.FormatInt(exposee.KeyDate, 10), base64.StdEncoding.EncodeToString(exposee.Key))
 	r1 := kvs.KVPutAndDelete(e.ClientConfig, exposee.AuthData.Value, strconv.FormatInt(exposee.KeyDate, 10), string(exposee.Key), expirationTTL, e.RequestTimeout)
 	if r1 != nil {
 		return errors.New("Exposee could not be added")
