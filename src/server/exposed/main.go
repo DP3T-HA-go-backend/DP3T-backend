@@ -129,7 +129,9 @@ func expose(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	log.Printf("After JSON unmarshall: %d - %s\n", exposee.KeyDate, exposee.Key)
+	keyStr := base64.StdEncoding.EncodeToString(exposee.Key)
+
+	log.Printf("After JSON unmarshall: %d - %s\n", exposee.KeyDate, keyStr)
 	ts_ms := time.Now().UnixNano() / int64(time.Millisecond)
 
 	// Tolerance +-24h

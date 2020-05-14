@@ -4,6 +4,7 @@ import (
 	"dp3t-backend/api"
 	kvs "dp3t-backend/etcd"
 	"dp3t-backend/server"
+	"encoding/base64"
 	"log"
 	"math"
 	"strconv"
@@ -60,7 +61,7 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 		for _, exposee := range r1.Kvs {
 			key, _ := strconv.ParseInt(string(exposee.Key), 10, 64)
 
-			log.Printf("RAW: ExposeeKey: %s - KeyDate: %s\n", string(exposee.Value), string(exposee.Key))
+			log.Printf("RAW: ExposeeKey: %s - KeyDate: %s\n", base64.StdEncoding.EncodeToString(exposee.Value), string(exposee.Key))
 			exposees = append(exposees, &api.ProtoExposee{
 				Key:     exposee.Value,
 				KeyDate: key,
