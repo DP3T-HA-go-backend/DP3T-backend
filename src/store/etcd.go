@@ -6,7 +6,6 @@ import (
 	"dp3t-backend/server"
 	"encoding/base64"
 	"log"
-	"math"
 	"strconv"
 	"strings"
 
@@ -85,7 +84,7 @@ func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 }
 
 func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
-	expirationTTL := int64(math.Ceil(float64(((time.Now().UnixNano() / int64(time.Millisecond)) - exposee.KeyDate) / 1000 * 3660 * 24)))
+	expirationTTL := (3600 * 24 * 21) - ((time.Now().UnixNano() / int64(time.Millisecond)) - exposee.KeyDate)
 	log.Printf("Storing new Exposee: Date: %s, Key %s", strconv.FormatInt(exposee.KeyDate, 10), base64.StdEncoding.EncodeToString(exposee.Key))
 
 	r1 := kvs.KVPutAndDelete(e.ClientConfig, authcodesNamespace, exposee.AuthData.Value, exposedNamespace, string(exposee.Key), strconv.FormatInt(exposee.KeyDate, 10), expirationTTL, e.RequestTimeout)
