@@ -1,0 +1,33 @@
+version: '2.0'
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.3.20
+    ports:
+    - 4001:4001
+    - 2379:2379
+    volumes:
+    - ./config/etcd:/etc/ssl/certs
+    environment:
+    - ETCD_NAME=etcd0
+    - ETCD_ADVERTISE_CLIENT_URLS=https://0.0.0.0:2379
+    - ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379
+    - ETCD_INITIAL_ADVERTISE_PEER_URLS=https://0.0.0.0:2380
+    - ETCD_INITIAL_CLUSTER=etcd0=https://0.0.0.0:2380
+    - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+    - ETCD_INITIAL_CLUSTER_STATE=new
+    - ETCD_CLIENT_CERT_AUTH=1
+    - ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/ca.pem
+    - ETCD_CERT_FILE=/etc/ssl/certs/server.pem
+    - ETCD_KEY_FILE=/etc/ssl/certs/server-key.pem
+  authcode:
+    image: dp3t.authcode.api:latest
+    network_mode: "host"
+    volumes:
+    - ./config:/service/etc
+    - ./config/etcd:/service/etc/etcd
+  exposed:
+    image: dp3t.exposed.protobuf.api:latest
+    network_mode: "host"
+    volumes:
+    - ./config:/service/etc
+    - ./config/etcd:/service/etc/etcd
