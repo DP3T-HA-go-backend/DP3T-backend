@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"testing"
 	"time"
+	"io/ioutil"
 
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/pkg/transport"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -122,6 +124,34 @@ func TestExposed(t *testing.T) {
 
 	// Clean-up used keys
 	cli.Delete(context.TODO(), "/exposed/"+string(exposee.Key))
+
+	// Try to retrieve the last batch
+	batch_len := int64(7200 * 1000)
+	last_batch := int64(ts_ms / batch_len) * batch_len
+	exposed_batch := fmt.Sprintf("%s/%d", exposed_url, last_batch)
+
+	t.Log("Retrieving last batch:", exposed_batch)
+
+	r, err := http.Get(exposed_batch)
+	if err != nil {
+		t.Log("Failed GET request", exposed_batch)
+	}
+
+	in, _ := ioutil.ReadAll(r.Body)
+	exposed := &api.ProtoExposedList{}
+	err = proto.Unmarshal(in, exposed)
+	if err != nil {
+		t.Errorf("Failed to decode protobuf %s", r.Body)
+		return
+	}
+
+	num_exposees := len(exposed.Exposed)
+	if num_exposees > 0 {
+		t.Errorf("Unexpected number of exposees in batch: %d (0 expected)", num_exposees)
+		return
+	}
+
+	t.Logf("Matching number of exposees in batch (%d)", num_exposees)
 }
 
 func getAuthCode(t *testing.T) (*api.ProtoAuthData, error) {
