@@ -36,11 +36,13 @@ docker-authcode:
 
 # Keys for development & testing  --------------------------------------
 
-# config/ec256-key:
-# 	ssh-keygen -t ecdsa -b 256 -m pkcs8 -N '' -f $@
+config/ec256-key:
+	openssl ecparam -genkey -name prime256v1 -noout -out $@
+	openssl ec -in $@ -pubout -out $@.pub
 
-# config/test/ec256-key:
-# 	ssh-keygen -t ecdsa -b 256 -m pkcs8 -N '' -f $@
+config/test/ec256-key:
+	openssl ecparam -genkey -name prime256v1 -noout -out $@
+	openssl ec -in $@ -pubout -out $@.pub
 
 
 # ----------------------------------------------------------------------
