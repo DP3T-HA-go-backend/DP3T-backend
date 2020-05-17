@@ -2,13 +2,13 @@ package main
 
 import (
 	"dp3t-backend/api"
-	"dp3t-backend/store"
 	"dp3t-backend/server"
+	"dp3t-backend/store"
 
 	"crypto/sha256"
-	"flag"
 	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -58,11 +58,11 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	h := sha256.Sum256([]byte(m))
 	digest := base64.StdEncoding.EncodeToString(h[:])
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
-		"content-hash":       digest,
-		"hash-alg":           "sha256",
-		"iss":                "d3pt",
-		"iat":                time,
-		"exp":                time_exp,
+		"content-hash": digest,
+		"hash-alg":     "sha256",
+		"iss":          "d3pt",
+		"iat":          time,
+		"exp":          time_exp,
 	})
 
 	signature, err := token.SignedString(conf.PrivateKey)

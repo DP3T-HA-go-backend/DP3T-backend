@@ -1,9 +1,9 @@
 package server
 
 import (
-	"encoding/base64"
 	"crypto/ecdsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -13,21 +13,21 @@ import (
 )
 
 type Config struct {
-	Port            int    `ini:"port"`
-	PrivateKeyFile  string `ini:"private-key-file"`
-	PublicKeyFile   string `ini:"public-key-file"`
-	StoreType       string `ini:"store"`
+	Port           int    `ini:"port"`
+	PrivateKeyFile string `ini:"private-key-file"`
+	PublicKeyFile  string `ini:"public-key-file"`
+	StoreType      string `ini:"store"`
 
-	PublicKey       string // base64-encoded public key used in HTTP header
-	PrivateKey      *ecdsa.PrivateKey
-	EtcdConfig      *EtcdConfig
+	PublicKey  string // base64-encoded public key used in HTTP header
+	PrivateKey *ecdsa.PrivateKey
+	EtcdConfig *EtcdConfig
 }
 
 type EtcdConfig struct {
-	Endpoints  []string `ini:"endpoints" delim:","`
-	CertFile   string   `ini:"cert-file"`
-	KeyFile    string   `ini:"key-file"`
-	CAFile     string   `ini:"ca-file"`
+	Endpoints []string `ini:"endpoints" delim:","`
+	CertFile  string   `ini:"cert-file"`
+	KeyFile   string   `ini:"key-file"`
+	CAFile    string   `ini:"ca-file"`
 }
 
 func InitConfig(conf_file string) (*Config, error) {
