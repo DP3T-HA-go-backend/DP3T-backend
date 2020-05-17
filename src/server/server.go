@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/base64"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -11,20 +12,13 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// TODO: Remove this hardcoded key, and read from Config.PrivateKey
-const PUBLIC_KEY string = "" +
-	"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlL" +
-	"b1pJemowREFRY0RRZ0FFTWl5SEU4M1lmRERMeWg5R3dCTGZsYWZQZ3pnNgpJanhy" +
-	"Sjg1ejRGWjlZV3krU2JpUDQrWW8rL096UFhlbDhEK0o5TWFrMXpvT2FJOG4zRm90" +
-	"clVnM2V3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
-
 type Config struct {
 	Port            int    `ini:"port"`
 	PrivateKeyFile  string `ini:"private-key-file"`
 	PublicKeyFile   string `ini:"public-key-file"`
 	StoreType       string `ini:"store"`
 
-	PublicKey       string
+	PublicKey       string // base64-encoded public key used in HTTP header
 	PrivateKey      *ecdsa.PrivateKey
 	EtcdConfig      *EtcdConfig
 }
@@ -77,12 +71,14 @@ func InitConfig(conf_file string) (*Config, error) {
 		return conf, fmt.Errorf("Failed to decode PEM block containing public key")
 	}
 
-	// TODO: Still need to get the public string, in the format needed by the
-	// header
 	_, e = x509.ParsePKIXPublicKey(block.Bytes)
 	if e != nil {
 		return conf, fmt.Errorf("Failed to parse EC public key: %s", e)
 	}
+
+	// TODO: Confirm whether this is standard base64 or base64-url
+	conf.PublicKey = base64.StdEncoding.EncodeToString(keyfile)
+	// conf.PublicKey = base64.RawURLEncoding.EncodeToString(keyfile)
 
 	if conf.StoreType == "etcd" {
 		conf.EtcdConfig = &EtcdConfig{}

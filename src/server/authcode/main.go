@@ -77,7 +77,7 @@ func gencode(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Digest", "sha-256=" + digest)
 	w.Header().Set("Signature", signature)
-	w.Header().Set("x-public-key", server.PUBLIC_KEY)
+	w.Header().Set("x-public-key", conf.PublicKey)
 	w.WriteHeader(http.StatusOK)
 	w.Write(m)
 }

@@ -96,7 +96,7 @@ func exposed(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.Header().Set("Digest", "sha-256="+digest)
 	w.Header().Set("Signature", signature)
-	w.Header().Set("x-public-key", server.PUBLIC_KEY)
+	w.Header().Set("x-public-key", conf.PublicKey)
 	w.Header().Set("x-batch-release-time", time_ms)
 	w.Header().Set("x-protobuf-message", "org.dpppt.backend.sdk.model.proto.ProtoExposedList")
 	w.Header().Set("x-protobuf-schema", "exposed.proto")
