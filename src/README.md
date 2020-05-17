@@ -5,10 +5,11 @@ A DP3T-compatible backend implemented in Go, using etcd as data store.
 
 ## Services
 
-- `exposed`:
+- `exposed`: Provides a service with the same interface as [DP3T
+  Backend][dp3t-sdk-backend], which can be used to:
   - Get list of exposees for a particular batch.
   - Post new exposee.
-- `authcode`: Generate authcodes.
+- `authcode`: Generate authcodes, which are needed to validate new exposees.
 
 ## Testing
 
@@ -29,3 +30,5 @@ docker-compose up -d
 make test
 docker-compose down
 ```
+
+[dp3t-sdk-backend]: https://github.com/DP-3T/dp3t-sdk-backend
