@@ -44,6 +44,9 @@ config/test/ec256-key:
 	openssl ecparam -genkey -name prime256v1 -noout -out $@
 	openssl ec -in $@ -pubout -out $@.pub
 
+test-keys: config/test/ec256-key
+	cd config/test/etcd/ && make && cd -
+
 
 # ----------------------------------------------------------------------
 

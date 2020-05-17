@@ -13,14 +13,13 @@ A DP3T-compatible backend implemented in Go, using etcd as data store.
 
 ## Testing
 
-We provide a docker-compose environment for testing the services
-locally, using etcd as data store. The only configuration needed to run
-etcd is the generation of certificates/keys for client-to-server
-connections:
+We provide a docker-compose environment for testing the services locally,
+using etcd as data store. The only configuration needed to run the tests is
+generating the EC keys for the servers, as well as generating the TLS
+certificates/keys for etcd's client-to-server connections:
 
 ```
-cd config/test/etcd/
-make
+make test-keys
 ```
 
 Run the integration tests as follows:
