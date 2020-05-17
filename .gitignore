@@ -5,9 +5,16 @@ services/public/exposed/ec256-key
 services/public/exposed/ec256-key.pub
 
 src/api/exposed.pb.go
-src/config/ec256-key
 src/server/exposed/main
 src/server/authcode/main
-src/config/etcd/node-node1.pem
-src/config/etcd/node-node1-key.pem
-src/config/etcd/ca.pem
+
+src/config/ec256-key
+src/config/ec256-key.pub
+
+src/config/production/ec256-key
+src/config/production/etcd
+
+src/config/test/ec256-key
+src/config/test/ec256-key.pub
+src/config/test/etcd/ca.*
+src/config/test/etcd/server.*

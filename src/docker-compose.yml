@@ -1,3 +1,4 @@
+# Environment to run integration tests locally.
 version: '2.0'
 services:
   etcd:
@@ -6,7 +7,7 @@ services:
     - 4001:4001
     - 2379:2379
     volumes:
-    - ./config/etcd:/etc/ssl/certs
+    - ./config/test/etcd:/etc/ssl/certs
     environment:
     - ETCD_NAME=etcd0
     - ETCD_ADVERTISE_CLIENT_URLS=https://0.0.0.0:2379
@@ -16,18 +17,16 @@ services:
     - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
     - ETCD_INITIAL_CLUSTER_STATE=new
     - ETCD_CLIENT_CERT_AUTH=1
-    - ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/ca.pem
-    - ETCD_CERT_FILE=/etc/ssl/certs/server.pem
-    - ETCD_KEY_FILE=/etc/ssl/certs/server-key.pem
+    - ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/ca.crt
+    - ETCD_CERT_FILE=/etc/ssl/certs/server.crt
+    - ETCD_KEY_FILE=/etc/ssl/certs/server.key
   authcode:
     image: dp3t.authcode.api:latest
     network_mode: "host"
     volumes:
-    - ./config:/service/etc
-    - ./config/etcd:/service/etc/etcd
+    - ./config/test:/service/etc
   exposed:
     image: dp3t.exposed.protobuf.api:latest
     network_mode: "host"
     volumes:
-    - ./config:/service/etc
-    - ./config/etcd:/service/etc/etcd
+    - ./config/test:/service/etc

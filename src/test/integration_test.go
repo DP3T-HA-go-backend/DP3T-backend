@@ -31,9 +31,9 @@ func init() {
 	var tls_conf *tls.Config
 
 	tls_info := transport.TLSInfo{
-		CertFile:      "config/etcd/server.pem",
-		KeyFile:       "config/etcd/server-key.pem",
-		TrustedCAFile: "config/etcd/ca.pem",
+		CertFile:      "../config/test/etcd/server.crt",
+		KeyFile:       "../config/test/etcd/server.key",
+		TrustedCAFile: "../config/test/etcd/ca.crt",
 	}
 
 	tls_conf, err = tls_info.ClientConfig()
