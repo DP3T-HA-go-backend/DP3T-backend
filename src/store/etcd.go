@@ -2,15 +2,14 @@ package store
 
 import (
 	"dp3t-backend/api"
-	kvs "dp3t-backend/etcd"
 	"dp3t-backend/server"
+
+	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"log"
 	"strconv"
 	"strings"
-
-	"crypto/tls"
-	"errors"
 	"time"
 
 	"go.etcd.io/etcd/clientv3"
@@ -58,7 +57,7 @@ func (e *Etcd) Init(conf *server.Config) error {
 
 func (e *Etcd) GetExposed(timestamp int64) (*api.ProtoExposedList, error) {
 
-	r1 := kvs.KVGetAllKeys(e.ClientConfig, exposedNamespace, e.RequestTimeout)
+	r1 := KVGetAllKeys(e.ClientConfig, exposedNamespace, e.RequestTimeout)
 	if r1 != nil {
 		exposees := make([]*api.ProtoExposee, 0, len(r1.Kvs))
 		for _, exposee := range r1.Kvs {
@@ -88,7 +87,7 @@ func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 	expirationTTL := int64((3600 * 24 * 21) - (ts_ms - exposee.KeyDate) / 1000)
 	log.Printf("Storing new Exposee: Date: %s, Key %s (expiration %ds)", strconv.FormatInt(exposee.KeyDate, 10), base64.StdEncoding.EncodeToString(exposee.Key), expirationTTL)
 
-	r1 := kvs.KVPutAndDelete(e.ClientConfig, authcodesNamespace, exposee.AuthData.Value, exposedNamespace, string(exposee.Key), strconv.FormatInt(exposee.KeyDate, 10), expirationTTL, e.RequestTimeout)
+	r1 := KVPutAndDelete(e.ClientConfig, authcodesNamespace, exposee.AuthData.Value, exposedNamespace, string(exposee.Key), strconv.FormatInt(exposee.KeyDate, 10), expirationTTL, e.RequestTimeout)
 	if r1 != nil {
 		return errors.New("Exposee could not be added")
 	}
@@ -96,7 +95,7 @@ func (e *Etcd) AddExposee(exposee *api.ProtoExposee) error {
 }
 
 func (e *Etcd) AddAuthCode(code string) error {
-	r1 := kvs.KVPutIfNotExists(e.ClientConfig, authcodesNamespace, code, "", e.RequestTimeout)
+	r1 := KVPutIfNotExists(e.ClientConfig, authcodesNamespace, code, "", e.RequestTimeout)
 	if r1 != nil {
 		return errors.New("Authcode already existed")
 	}
@@ -104,7 +103,7 @@ func (e *Etcd) AddAuthCode(code string) error {
 }
 
 func (e *Etcd) ExpireExposees() error {
-	_ = kvs.KVDeleteAllKeys(e.ClientConfig, e.RequestTimeout)
+	_ = KVDeleteAllKeys(e.ClientConfig, e.RequestTimeout)
 	return nil
 }
 

@@ -1,47 +1,17 @@
-package kvs
+package store
 
 import (
 	"context"
-	// "crypto/tls"
 	"errors"
-	"log"
-
 	"fmt"
+	"log"
 	"time"
 
 	"go.etcd.io/etcd/clientv3"
-	// "go.etcd.io/etcd/etcdserver/api/v3rpc/rpctypes"
-	// "go.etcd.io/etcd/pkg/transport"
 )
 
-// var (
-//     dialTimeout    = 5 * time.Second
-//     requestTimeout = 10 * time.Second
-//     endpoints      = []string{"10.0.26.10:2379", "10.0.26.11:2379", "10.0.26.13:2379"}
-// )
-
-// func tlsConfig() *tls.Config {
-//     tlsInfo := transport.TLSInfo{
-//         CertFile:      "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/node-node1.pem",
-//         KeyFile:       "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/node-node1-key.pem",
-//         TrustedCAFile: "/Users/dcarrera/Desktop/DP3T/DP3T-backend/kvs/keys/ca.pem",
-//     }
-//     tlsConfig, err := tlsInfo.ClientConfig()
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-
-//     return tlsConfig
-// }
-
-//KVPut to put key and value
+// KVPut to put key and value
 func KVPut(cliconfig *clientv3.Config, key string, value string) {
-	// tlsConfig := tlsConfig()
-	// cli, err := clientv3.New(clientv3.Config{
-	//     Endpoints:   endpoints,
-	//     DialTimeout: dialTimeout,
-	//     TLS:         tlsConfig,
-	// })
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
 		log.Fatal(err)
@@ -54,7 +24,7 @@ func KVPut(cliconfig *clientv3.Config, key string, value string) {
 	}
 }
 
-//KVPutTTL to put key and value with a Time To Live in days
+// KVPutTTL to put key and value with a Time To Live in days
 func KVPutTTL(cliconfig *clientv3.Config, key string, value string, days int64) {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -93,7 +63,7 @@ func KVGet(cliconfig *clientv3.Config, key string, requestTimeout time.Duration)
 	return resp
 }
 
-//KVDelete to delete a key
+// KVDelete to delete a key
 func KVDelete(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -111,7 +81,7 @@ func KVDelete(cliconfig *clientv3.Config, key string, requestTimeout time.Durati
 	}
 }
 
-//KVPut only if the key did not exist
+// KVPut only if the key did not exist
 func KVPutIfNotExists(cliconfig *clientv3.Config, putNamespace string, KeyToPut string, ValueToPut string, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -130,10 +100,9 @@ func KVPutIfNotExists(cliconfig *clientv3.Config, putNamespace string, KeyToPut 
 	}
 
 	return errors.New("Key already existed")
-
 }
 
-//KVDelete only if the key did existed
+// KVDelete only if the key did existed
 func KVDeleteIfExists(cliconfig *clientv3.Config, KeyToDelete string, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -152,10 +121,9 @@ func KVDeleteIfExists(cliconfig *clientv3.Config, KeyToDelete string, requestTim
 	}
 
 	return errors.New("Key already existed")
-
 }
 
-//KVDelete one existing Key and KVPut another one only if the first existed and was deleted
+// KVDelete one existing Key and KVPut another one only if the first existed and was deleted
 func KVPutAndDelete(cliconfig *clientv3.Config, deleteNamespace string, KeyToDelete string, putNamespace string,
 	KeyToPut string, ValueToPut string, TTL int64, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
@@ -186,7 +154,7 @@ func KVPutAndDelete(cliconfig *clientv3.Config, deleteNamespace string, KeyToDel
 
 }
 
-//KVDeleteWithPrefix to delete all the keys with the prefix key
+// KVDeleteWithPrefix to delete all the keys with the prefix key
 func KVDeleteWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -214,7 +182,7 @@ func KVDeleteWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout t
 	// Deleted all keys: true
 }
 
-//KVGetWithPrefix to get all the keys with prefix key
+// KVGetWithPrefix to get all the keys with prefix key
 func KVGetWithPrefix(cliconfig *clientv3.Config, key string, requestTimeout time.Duration) *clientv3.GetResponse {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -252,7 +220,7 @@ func KVGetAllKeys(cliconfig *clientv3.Config, keyNamespace string, requestTimeou
 	return resp
 }
 
-//KVGetWithRange to get all the keys within a range  [key, end).
+// KVGetWithRange to get all the keys within a range  [key, end).
 func KVDeleteAllKeys(cliconfig *clientv3.Config, requestTimeout time.Duration) error {
 	cli, err := clientv3.New(*cliconfig)
 	if err != nil {
@@ -275,41 +243,3 @@ func KVDeleteAllKeys(cliconfig *clientv3.Config, requestTimeout time.Duration) e
 
 	return nil
 }
-
-//TestConfigWithTLS function to test connection with TLS config
-// func TestConfigWithTLS() {
-//     tlsInfo := transport.TLSInfo{
-//         CertFile:      "/etc/ssl/etcd/ssl/node-node1.pem",
-//         KeyFile:       "/etc/ssl/etcd/ssl/node-node1-key.pem",
-//         TrustedCAFile: "/etc/ssl/etcd/ssl/ca.pem",
-//     }
-//     tlsConfig, err := tlsInfo.ClientConfig()
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-//     cli, err := clientv3.New(clientv3.Config{
-//         Endpoints:   endpoints,
-//         DialTimeout: dialTimeout,
-//         TLS:         tlsConfig,
-//     })
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-//     defer cli.Close() // make sure to close the client
-
-//     ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
-//     _, err = cli.Put(ctx, "foo", "bar")
-//     cancel()
-//     if err != nil {
-//         switch err {
-//         case context.Canceled:
-//             fmt.Printf("ctx is canceled by another routine: %v\n", err)
-//         case context.DeadlineExceeded:
-//             fmt.Printf("ctx is attached with a deadline is exceeded: %v\n", err)
-//         case rpctypes.ErrEmptyKey:
-//             fmt.Printf("client-side error: %v\n", err)
-//         default:
-//             fmt.Printf("bad cluster endpoints, which are not etcd servers: %v\n", err)
-//         }
-//     }
-// }
