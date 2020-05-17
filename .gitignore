@@ -12,6 +12,7 @@ src/config/ec256-key
 src/config/ec256-key.pub
 
 src/config/production/ec256-key
+src/config/production/ec256-key.pub
 src/config/production/etcd
 
 src/config/test/ec256-key
