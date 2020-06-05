@@ -30,6 +30,20 @@ follows:
 make docker
 ```
 
+## Run
+
+To run the services, you'll first need to generate the public/private EC keys.
+```
+make config/ec256-key
+```
+
+And then simply run the services as follows. By default, services will read
+the configuration file under `config/{authcode,exposed}.ini`, but the path
+can be configured with the `--config` flag.
+```
+./server/{authcode,exposed}/main [--config path/to/config/file.ini]
+```
+
 ## Test
 
 We provide a docker-compose environment for testing the services locally,
