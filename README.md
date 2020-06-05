@@ -11,7 +11,25 @@ A DP3T-compatible backend implemented in Go, using etcd as data store.
   - Post new exposee.
 - `authcode`: Generate authcodes, which are needed to validate new exposees.
 
-## Testing
+## Build
+
+This project requires:
+ - Go (>= 1.11)
+ - `protoc`: Protocol Buffers compiler
+ - `protoc-gen-go`: `protoc`'s plugin to generate Go code
+
+To build the services locally, you can use the provided Makefile:
+```
+make
+```
+
+Docker containers for each service are also available and can be built as
+follows:
+```
+make docker
+```
+
+## Test
 
 We provide a docker-compose environment for testing the services locally,
 using etcd as data store. The only configuration needed to run the tests is
