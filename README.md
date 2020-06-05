@@ -2,8 +2,7 @@ dp3t-backend
 ============
 
 A DP3T-compatible backend implemented in Go, using etcd as data store.
-
-## Services
+This backend provides the following services:
 
 - `exposed`: Provides a service with the same interface as [DP3T
   Backend][dp3t-sdk-backend], which can be used to:
@@ -16,9 +15,11 @@ A DP3T-compatible backend implemented in Go, using etcd as data store.
 This project requires:
  - Go (>= 1.11)
  - `protoc`: Protocol Buffers compiler
- - `protoc-gen-go`: `protoc`'s plugin to generate Go code
+ - `protoc-gen-go`: Plugin for the Protocol Buffers compiler to generate Go
+   code
 
-To build the services locally, you can use the provided Makefile:
+To build the services in your local environment, you can use the provided
+Makefile:
 ```
 make
 ```
