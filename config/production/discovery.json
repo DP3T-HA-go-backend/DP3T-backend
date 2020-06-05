@@ -1,0 +1,9 @@
+{
+    "applications": [{
+        "appId": "<appID here>",
+        "description": "This is the BSC demo app of the DP-3T SDK",
+        "bucketBaseUrl": "https://<host:port>/covid/api/",
+        "reportBaseUrl": "https://<host:port>/covid/api/",
+        "contact": "Barcelona Supercomputing Center (BSC-CNS)"
+    }]
+}
