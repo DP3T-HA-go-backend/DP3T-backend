@@ -1,21 +1,15 @@
-services/public/exposed/exposed
-services/public/exposed/exposed.pb.go
-services/public/demo-go/demo-go
-services/public/exposed/ec256-key
-services/public/exposed/ec256-key.pub
+api/exposed.pb.go
+server/exposed/main
+server/authcode/main
 
-src/api/exposed.pb.go
-src/server/exposed/main
-src/server/authcode/main
+config/ec256-key
+config/ec256-key.pub
 
-src/config/ec256-key
-src/config/ec256-key.pub
+config/production/ec256-key
+config/production/ec256-key.pub
+config/production/etcd
 
-src/config/production/ec256-key
-src/config/production/ec256-key.pub
-src/config/production/etcd
-
-src/config/test/ec256-key
-src/config/test/ec256-key.pub
-src/config/test/etcd/ca.*
-src/config/test/etcd/server.*
+config/test/ec256-key
+config/test/ec256-key.pub
+config/test/etcd/ca.*
+config/test/etcd/server.*
