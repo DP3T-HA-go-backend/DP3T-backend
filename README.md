@@ -24,8 +24,9 @@ Makefile:
 make
 ```
 
-It's also possible build the project as Docker images. The following command
-will build the `dp3t.exposed.protobuf.api` and `dp3t.authcode.api` images:
+It's also possible build the project as Docker images, without installing any
+of the dependencies locally. The following command will build the
+`dp3t.exposed.protobuf.api` and `dp3t.authcode.api` images:
 ```
 make docker
 ```
