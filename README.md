@@ -24,6 +24,12 @@ Makefile:
 make
 ```
 
+It's also possible build the project as Docker images. The following command
+will build the `dp3t.exposed.protobuf.api` and `dp3t.authcode.api` images:
+```
+make docker
+```
+
 ## Run
 
 To run the services, you'll first need to generate your own public/private EC
